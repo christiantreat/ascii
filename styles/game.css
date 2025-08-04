@@ -1,0 +1,119 @@
+body {
+    margin: 0;
+    padding: 20px;
+    font-family: Arial, sans-serif;
+    background: #222;
+    color: white;
+}
+
+#gameArea {
+    width: 400px;
+    height: 400px;
+    background: #000;
+    border: 2px solid #444;
+    position: relative;
+    margin: 20px 0;
+    font-family: 'Courier New', monospace;
+    font-size: 12px;
+    line-height: 12px;
+    overflow: hidden;
+    
+    /* Ensure crisp rendering */
+    image-rendering: pixelated;
+    image-rendering: -moz-crisp-edges;
+    image-rendering: crisp-edges;
+}
+
+#player {
+    position: absolute;
+    width: 12px;
+    height: 12px;
+    background: transparent;
+    font-family: 'Courier New', monospace;
+    font-size: 12px;
+    line-height: 12px;
+    text-align: center;
+    color: #ff6b6b;
+    z-index: 10;
+    
+    /* Reset all spacing */
+    margin: 0;
+    padding: 0;
+    border: none;
+    box-sizing: border-box;
+    
+    /* Prevent sub-pixel rendering */
+    transform: translateZ(0);
+}
+
+.controls {
+    margin: 10px 0;
+}
+
+button {
+    margin: 5px;
+    padding: 10px;
+    background: #333;
+    color: white;
+    border: 1px solid #666;
+    cursor: pointer;
+}
+
+button:hover {
+    background: #555;
+}
+
+button:disabled {
+    background: #111;
+    color: #666;
+    cursor: not-allowed;
+}
+
+.key-hint {
+    margin: 5px 0;
+    color: #aaa;
+    font-style: italic;
+}
+
+.status {
+    margin: 20px 0;
+    display: flex;
+    gap: 20px;
+}
+
+.status span {
+    padding: 5px 10px;
+    border-radius: 3px;
+    font-weight: bold;
+}
+
+.status .available {
+    background: #1a4d1a;
+    color: #4f4;
+}
+
+.status .unavailable {
+    background: #4d1a1a;
+    color: #f44;
+}
+
+.terrain-tile {
+    position: absolute;
+    width: 12px;
+    height: 12px;
+    font-family: 'Courier New', monospace;
+    font-size: 12px;
+    line-height: 12px;
+    text-align: center;
+    user-select: none;
+    margin: 0;           /* Add this */
+    padding: 0;          /* Add this */
+    border: none;        /* Add this */
+    box-sizing: border-box;  /* Add this */
+}
+
+.terrain-grass { color: #228b22; }
+.terrain-tree { color: #654321; }
+.terrain-hills { color: #696969; }
+.terrain-path { color: #d2b48c; }
+.terrain-stone { color: #808080; }
