@@ -90,7 +90,7 @@ class InputHandler {
             return true;
         }
         
-        // Quick terrain configuration
+        // Quick terrain configuration (simplified)
         if (e.key === '1') {
             e.preventDefault();
             this.game.terrainSystem.quickConfigElevation('flat').regenerateWorld();
@@ -101,7 +101,7 @@ class InputHandler {
         
         if (e.key === '2') {
             e.preventDefault();
-            this.game.terrainSystem.quickConfigElevation('hilly').regenerateWorld();
+            this.game.terrainSystem.quickConfigElevation('rolling').regenerateWorld();
             this.game.uiController.showMessage('Terrain: Rolling hills', 2000);
             this.game.render();
             return true;
@@ -109,16 +109,33 @@ class InputHandler {
         
         if (e.key === '3') {
             e.preventDefault();
-            this.game.terrainSystem.quickConfigElevation('mountainous').regenerateWorld();
-            this.game.uiController.showMessage('Terrain: Mountainous', 2000);
+            this.game.terrainSystem.quickConfigElevation('hilly').regenerateWorld();
+            this.game.uiController.showMessage('Terrain: Hilly', 2000);
             this.game.render();
             return true;
         }
         
+        // Water level controls
         if (e.key === '4') {
             e.preventDefault();
-            this.game.terrainSystem.quickConfigElevation('volcanic').regenerateWorld();
-            this.game.uiController.showMessage('Terrain: Volcanic', 2000);
+            this.game.terrainSystem.quickConfigWater('dry').regenerateWorld();
+            this.game.uiController.showMessage('Water: Dry landscape', 2000);
+            this.game.render();
+            return true;
+        }
+        
+        if (e.key === '5') {
+            e.preventDefault();
+            this.game.terrainSystem.quickConfigWater('normal').regenerateWorld();
+            this.game.uiController.showMessage('Water: Normal amount', 2000);
+            this.game.render();
+            return true;
+        }
+        
+        if (e.key === '6') {
+            e.preventDefault();
+            this.game.terrainSystem.quickConfigWater('wet').regenerateWorld();
+            this.game.uiController.showMessage('Water: Lots of water', 2000);
             this.game.render();
             return true;
         }
@@ -127,7 +144,7 @@ class InputHandler {
         if (e.key === 'e' && (e.ctrlKey || e.metaKey)) {
             e.preventDefault();
             this.game.terrainSystem.regenerateModule('elevation');
-            this.game.uiController.showMessage('Elevation regenerated', 1500);
+            this.game.uiController.showMessage('Hills regenerated', 1500);
             this.game.render();
             return true;
         }
@@ -140,15 +157,7 @@ class InputHandler {
             return true;
         }
         
-        if (e.key === 'v' && (e.ctrlKey || e.metaKey)) {
-            e.preventDefault();
-            this.game.terrainSystem.regenerateModule('vegetation');
-            this.game.uiController.showMessage('Vegetation regenerated', 1500);
-            this.game.render();
-            return true;
-        }
-        
-        // Module toggle
+        // Module status
         if (e.key === 'm' && (e.ctrlKey || e.metaKey)) {
             e.preventDefault();
             const status = this.game.terrainSystem.getModuleStatus();
@@ -243,10 +252,5 @@ class InputHandler {
             e.preventDefault(); // Prevent page scrolling with arrow keys
             this.game.executeCommand('move', movement);
         }
-    }
-    
-    // Method to handle mouse clicks in the future
-    setupMouseInput() {
-        // Future: Handle mouse clicks for movement or interaction
     }
 }

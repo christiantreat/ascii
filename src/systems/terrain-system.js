@@ -1,24 +1,15 @@
-// === MODULAR TERRAIN SYSTEM ===
-// File: src/systems/terrain-system.js (Updated)
+// === UPDATED TERRAIN SYSTEM (SIMPLIFIED) ===
+// File: src/systems/terrain-system.js
 
 class TerrainSystem {
     constructor() {
         this.terrainTypes = {
             plains: { symbol: '▓', className: 'terrain-grass', name: 'Plains' },
-            forest: { symbol: '♠', className: 'terrain-tree', name: 'Forest' },
-            mountain: { symbol: '█', className: 'terrain-stone', name: 'Mountain' },
             foothills: { symbol: '▒', className: 'terrain-hills', name: 'Foothills' },
             river: { symbol: '~', className: 'terrain-water', name: 'River' },
             lake: { symbol: '▀', className: 'terrain-water', name: 'Lake' },
-            trail: { symbol: '·', className: 'terrain-path', name: 'Trail' },
-            road: { symbol: '═', className: 'terrain-road', name: 'Road' },
-            building: { symbol: '▬', className: 'terrain-building', name: 'Building' },
-            village: { symbol: '■', className: 'terrain-village', name: 'Village' },
             treasure: { symbol: '◆', className: 'terrain-gold', name: 'Treasure' },
             unknown: { symbol: '░', className: 'terrain-unknown', name: 'Unknown' },
-            // New terrain types
-            wetland: { symbol: '≈', className: 'terrain-wetland', name: 'Wetland' },
-            desert: { symbol: '▄', className: 'terrain-desert', name: 'Desert' },
             // Fog of war terrain types
             fog: { symbol: '▓', className: 'terrain-fog', name: 'Unknown' },
             explored: { symbol: '░', className: 'terrain-explored', name: 'Explored' }
@@ -26,10 +17,10 @@ class TerrainSystem {
         
         // World boundaries
         this.worldBounds = {
-            minX: -300,
-            maxX: 300,
-            minY: -300,
-            maxY: 300
+            minX: -200,
+            maxX: 200,
+            minY: -200,
+            maxY: 200
         };
         
         // Fog of war settings
@@ -37,8 +28,8 @@ class TerrainSystem {
         this.visionRadius = 3;
         this.exploredRadius = 2;
         
-        // Initialize modular world generation
-        this.initializeModularWorld();
+        // Initialize simple world generation
+        this.initializeSimpleWorld();
         
         // Cache for generated cells
         this.world = new Map();
@@ -50,42 +41,38 @@ class TerrainSystem {
         this.calibrateDisplay();
     }
     
-    initializeModularWorld() {
-        console.log("Initializing modular world generation system...");
+    initializeSimpleWorld() {
+        console.log("Initializing simple world generation system...");
         
-        // Create modular world generator
-        this.worldGenerator = new ModularWorldGenerator({
+        // Create simple world generator
+        this.worldGenerator = new SimpleWorldGenerator({
             centerX: 0,
             centerY: 0,
-            regionSize: 600,
+            regionSize: 400,
             seed: Math.floor(Math.random() * 10000)
         });
         
         // Generate the world
         this.worldGenerator.generateWorld(0, 0);
         
-        // Create modular terrain classifier
-        this.classifier = new ModularTerrainClassifier(this.worldGenerator);
+        // Create simple terrain classifier
+        this.classifier = new SimpleTerrainClassifier(this.worldGenerator);
         
         // Initialize renderer
         this.renderer = new TerrainRenderer(this.terrainTypes);
         
-        console.log("Modular world generation complete!");
+        console.log("Simple world generation complete!");
         this.logWorldStats();
     }
     
     logWorldStats() {
         const elevationData = this.worldGenerator.getModuleData('elevation');
         const hydrologyData = this.worldGenerator.getModuleData('hydrology');
-        const vegetationData = this.worldGenerator.getModuleData('vegetation');
         
         console.log("World Statistics:");
-        console.log(`- Elevation method: ${elevationData?.method || 'unknown'}`);
+        console.log(`- Hills: ${elevationData?.hills?.length || 0}`);
         console.log(`- Rivers: ${hydrologyData?.rivers?.length || 0}`);
         console.log(`- Lakes: ${hydrologyData?.lakes?.length || 0}`);
-        console.log(`- Springs: ${hydrologyData?.springs?.length || 0}`);
-        console.log(`- Forests: ${vegetationData?.forests?.length || 0}`);
-        console.log(`- Grasslands: ${vegetationData?.grasslands?.length || 0}`);
     }
     
     calibrateDisplay() {
@@ -100,48 +87,30 @@ class TerrainSystem {
     
     // === WORLD CONFIGURATION METHODS ===
     
-    setElevationMethod(method, config = {}) {
-        this.worldGenerator.configureElevation({ method, ...config });
+    configureElevation(config) {
+        this.worldGenerator.configureElevation(config);
         return this;
     }
     
-    setHydrologyConfig(config) {
+    configureHydrology(config) {
         this.worldGenerator.configureHydrology(config);
-        return this;
-    }
-    
-    setVegetationConfig(config) {
-        this.worldGenerator.configureVegetation(config);
         return this;
     }
     
     usePreset(presetName) {
         switch (presetName) {
-            case 'mountainous':
-                this.worldGenerator.createMountainousWorld();
+            case 'rolling':
+                this.worldGenerator.createRollingTerrain();
                 break;
-            case 'rolling_hills':
-                this.worldGenerator.createRollingHillsWorld();
+            case 'flat':
+                this.worldGenerator.createFlatTerrain();
                 break;
-            case 'volcanic':
-                this.worldGenerator.createVolcanicWorld();
-                break;
-            case 'ridges':
-                this.worldGenerator.createRidgeWorld();
+            case 'hilly':
+                this.worldGenerator.createHillyTerrain();
                 break;
             default:
                 console.warn(`Unknown preset: ${presetName}`);
         }
-        return this;
-    }
-    
-    enableModule(moduleName) {
-        this.worldGenerator.enableModule(moduleName);
-        return this;
-    }
-    
-    disableModule(moduleName) {
-        this.worldGenerator.disableModule(moduleName);
         return this;
     }
     
@@ -263,14 +232,14 @@ class TerrainSystem {
     generateCell(x, y) {
         const key = this.getWorldKey(x, y);
         
-        // Use modular classifier to determine terrain type
+        // Use simple classifier to determine terrain type
         const terrainType = this.classifier.classifyTerrain(x, y);
         
         // Get additional data from world generator
         const elevation = this.worldGenerator.getElevationAt(x, y);
         const analysis = this.worldGenerator.analyzePosition(x, y);
         
-        // Add treasures based on terrain suitability
+        // Add treasures based on terrain suitability (simplified)
         let entity = null;
         if (this.shouldPlaceTreasure(x, y, terrainType, analysis)) {
             entity = 'treasure';
@@ -290,32 +259,25 @@ class TerrainSystem {
     }
     
     shouldPlaceTreasure(x, y, terrainType, analysis) {
-        // Don't place treasures in settlements or on roads
-        if (['building', 'village', 'road'].includes(terrainType)) {
-            return false;
-        }
-        
         // Don't place in water
-        if (['river', 'lake', 'wetland'].includes(terrainType)) {
+        if (['river', 'lake'].includes(terrainType)) {
             return false;
         }
         
-        // Base treasure chance
+        // Simple treasure placement
         let treasureChance = 0.0003;
         
-        // Increase chance in remote areas (high elevation, low settlement suitability)
-        if (analysis.elevation > 0.6) treasureChance *= 2;
-        if (analysis.suitability.settlement < 0.3) treasureChance *= 1.5;
+        // Slightly more likely in hills
+        if (terrainType === 'foothills') treasureChance *= 1.5;
         
-        // Increase chance in forests and mountains
-        if (terrainType === 'forest') treasureChance *= 1.5;
-        if (terrainType === 'mountain') treasureChance *= 2;
+        // Less likely near good settlement areas
+        if (analysis.suitability.settlement > 0.5) treasureChance *= 0.5;
         
         return this.seededRandom(x * 2000 + y * 3000, 10000) < treasureChance;
     }
     
     isTerrainWalkable(terrainType) {
-        const unwalkableTerrains = ['mountain', 'building', 'village', 'lake'];
+        const unwalkableTerrains = ['lake'];
         return !unwalkableTerrains.includes(terrainType);
     }
     
@@ -389,7 +351,7 @@ class TerrainSystem {
     }
     
     regenerateWorld(centerX = 0, centerY = 0) {
-        console.log("Regenerating modular world...");
+        console.log("Regenerating simple world...");
         this.world.clear();
         this.exploredAreas.clear();
         
@@ -410,75 +372,63 @@ class TerrainSystem {
         console.log(`${moduleName} module regenerated!`);
     }
     
-    // === CONFIGURATION EXPORT/IMPORT ===
-    exportConfiguration() {
-        return {
-            worldGenerator: this.worldGenerator.exportConfiguration(),
-            fogOfWar: {
-                enabled: this.fogOfWarEnabled,
-                visionRadius: this.visionRadius,
-                exploredRadius: this.exploredRadius
+    // === QUICK CONFIGURATION METHODS ===
+    quickConfigElevation(method) {
+        const configs = {
+            'flat': { 
+                hillCount: 2,
+                minHillRadius: 15,
+                maxHillRadius: 25,
+                minHillHeight: 0.18,
+                maxHillHeight: 0.28,
+                hillSpacing: 80
             },
-            worldBounds: this.worldBounds
-        };
-    }
-    
-    importConfiguration(config) {
-        if (config.worldGenerator) {
-            this.worldGenerator.importConfiguration(config.worldGenerator);
-        }
-        
-        if (config.fogOfWar) {
-            this.fogOfWarEnabled = config.fogOfWar.enabled;
-            this.visionRadius = config.fogOfWar.visionRadius;
-            this.exploredRadius = config.fogOfWar.exploredRadius;
-        }
-        
-        if (config.worldBounds) {
-            this.worldBounds = { ...config.worldBounds };
-        }
-        
-        // Clear cached data to force regeneration
-        this.world.clear();
-        this.exploredAreas.clear();
-        
-        console.log("Configuration imported successfully!");
-    }
-    
-    // === ADVANCED TERRAIN QUERIES ===
-    findSuitableLocations(purpose, count = 5, minScore = 0.5) {
-        const bounds = this.getWorldBounds();
-        const candidates = [];
-        
-        // Sample locations across the world
-        for (let x = bounds.minX; x <= bounds.maxX; x += 20) {
-            for (let y = bounds.minY; y <= bounds.maxY; y += 20) {
-                const analysis = this.getTerrainAnalysis(x, y);
-                const score = analysis.suitability[purpose];
-                
-                if (score >= minScore) {
-                    candidates.push({
-                        x, y, score,
-                        terrain: analysis.terrain.terrain,
-                        elevation: analysis.elevation
-                    });
-                }
+            'rolling': { 
+                hillCount: 6,
+                minHillRadius: 20,
+                maxHillRadius: 35,
+                minHillHeight: 0.25,
+                maxHillHeight: 0.45,
+                hillSpacing: 45
+            },
+            'hilly': { 
+                hillCount: 10,
+                minHillRadius: 18,
+                maxHillRadius: 32,
+                minHillHeight: 0.3,
+                maxHillHeight: 0.55,
+                hillSpacing: 30
             }
-        }
+        };
         
-        // Sort by score and return top candidates
-        candidates.sort((a, b) => b.score - a.score);
-        return candidates.slice(0, count);
+        if (configs[method]) {
+            this.worldGenerator.configureElevation(configs[method]);
+        }
+        return this;
     }
     
+    quickConfigWater(level) {
+        const configs = {
+            'dry': { riverCount: 1, lakeCount: 2 },
+            'normal': { riverCount: 3, lakeCount: 4 },
+            'wet': { riverCount: 5, lakeCount: 6 }
+        };
+        
+        if (configs[level]) {
+            this.worldGenerator.configureHydrology(configs[level]);
+        }
+        return this;
+    }
+    
+    // === TERRAIN STATISTICS ===
     getTerrainStatistics() {
         const bounds = this.getWorldBounds();
         const stats = {};
         let totalSamples = 0;
         
         // Sample terrain types across the world
-        for (let x = bounds.minX; x <= bounds.maxX; x += 10) {
-            for (let y = bounds.minY; y <= bounds.maxY; y += 10) {
+        for (let x = bounds.minX; x <= bounds.maxX; x += 8) {
+            for (let y = bounds.minY; y <= bounds.maxY; y += 8) {
                 const terrain = this.classifier.classifyTerrain(x, y);
                 stats[terrain] = (stats[terrain] || 0) + 1;
                 totalSamples++;
@@ -496,52 +446,5 @@ class TerrainSystem {
             percentages: percentages,
             totalSamples: totalSamples
         };
-    }
-    
-    // === QUICK CONFIGURATION METHODS ===
-    quickConfigElevation(method) {
-        const configs = {
-            'flat': { method: 'noise', noiseScale: 0.005, maxElevation: 0.3 },
-            'hilly': { method: 'noise', noiseScale: 0.01, maxElevation: 0.7 },
-            'mountainous': { method: 'peaks', peaks: [
-                { x: -50, y: -100, height: 1.0, radius: 100 },
-                { x: 80, y: -60, height: 0.9, radius: 80 }
-            ]},
-            'volcanic': { method: 'volcanic' },
-            'ridges': { method: 'ridges' }
-        };
-        
-        if (configs[method]) {
-            this.worldGenerator.configureElevation(configs[method]);
-        }
-        return this;
-    }
-    
-    quickConfigWater(level) {
-        const configs = {
-            'dry': { riverCount: 1, lakeCount: 1, wetlandsEnabled: false },
-            'normal': { riverCount: 3, lakeCount: 3, wetlandsEnabled: true },
-            'wet': { riverCount: 6, lakeCount: 5, wetlandsEnabled: true },
-            'flooded': { riverCount: 8, lakeCount: 8, wetlandsEnabled: true }
-        };
-        
-        if (configs[level]) {
-            this.worldGenerator.configureHydrology(configs[level]);
-        }
-        return this;
-    }
-    
-    quickConfigVegetation(density) {
-        const configs = {
-            'sparse': { forestCount: 2, grasslandsEnabled: false },
-            'normal': { forestCount: 4, grasslandsEnabled: true },
-            'dense': { forestCount: 8, grasslandsEnabled: true },
-            'jungle': { forestCount: 12, grasslandsEnabled: true, forestDensity: 0.9 }
-        };
-        
-        if (configs[density]) {
-            this.worldGenerator.configureVegetation(configs[density]);
-        }
-        return this;
     }
 }

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Modular Command Game</title>
+    <title>Simple Modular Terrain Game</title>
     <link rel="stylesheet" href="styles/game.css">
 </head>
 <body>
@@ -11,8 +11,8 @@
     
     <div class="instructions fade-out">
         Move: Arrow Keys/WASD • Fog: F • Vision: +/- • Exploration: [/]<br>
-        Terrain: 1-4 (flat/hilly/mountain/volcanic) • Modules: Ctrl+E/W/V • Info: I/T/M/S<br>
-        Regenerate: Ctrl+R (world) • Help: H
+        Terrain: 1-3 (flat/rolling/hilly) • Water: 4-6 (dry/normal/wet)<br>
+        Modules: Ctrl+E (hills) Ctrl+W (water) • Info: I/T/S • Regenerate: Ctrl+R
     </div>
         
     <div class="status">
@@ -21,12 +21,19 @@
         <span id="position">Position: 0, 0</span>
     </div>
 
-    <!-- Load modules in dependency order -->
+    <!-- Load simple modular system files -->
     <script src="src/commands/command-base.js"></script>
     <script src="src/commands/move-command.js"></script>
     <script src="src/entities/game-object.js"></script>
-    <script src="src/systems/world-generator.js"></script>
-    <script src="src/systems/terrain-classifier.js"></script>
+    
+    <!-- Simple modular terrain system -->
+    <script src="src/systems/terrain-modules/terrain-module-base.js"></script>
+    <script src="src/systems/terrain-modules/elevation-module.js"></script>
+    <script src="src/systems/terrain-modules/hydrology-module.js"></script>
+    <script src="src/systems/simple-world-generator.js"></script>
+    <script src="src/systems/simple-terrain-classifier.js"></script>
+    
+    <!-- Core systems -->
     <script src="src/systems/terrain-renderer.js"></script>
     <script src="src/systems/terrain-system.js"></script>
     <script src="src/systems/camera-system.js"></script>   
