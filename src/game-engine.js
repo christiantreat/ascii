@@ -1,8 +1,13 @@
 class GameEngine {
     constructor() {
         this.gameArea = document.getElementById('gameArea');
-        this.player = new GameObject(document.getElementById('player'));
+        
+        // Initialize terrain system first
         this.terrainSystem = new TerrainSystem();
+        
+        // Create player with terrain system (NOT DOM element)
+        this.player = new GameObject(this.terrainSystem);
+        
         this.commandHistory = new CommandHistory();
         this.commandRegistry = new Map();
         this.uiController = new UIController();
@@ -52,14 +57,8 @@ class GameEngine {
     }
     
     render() {
-        const viewDims = this.terrainSystem.getViewDimensions(this.gameArea);
-        this.terrainSystem.renderTerrain(
-            this.gameArea, 
-            this.player.x, 
-            this.player.y, 
-            viewDims.width, 
-            viewDims.height
-        );
+        // Simple rendering - just pass player position to terrain system
+        this.terrainSystem.renderTerrain(this.gameArea, this.player.x, this.player.y);
     }
     
     updateUI() {

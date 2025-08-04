@@ -29,17 +29,26 @@ class GameObject {
             this.y = newY;
             return true;
         }
+        
+        // Optional: Provide feedback why movement failed
+        this.handleBlockedMovement(newX, newY);
         return false;
     }
     
     canMoveTo(x, y) {
+        // First check if position is within world bounds
+        if (!this.terrainSystem.isValidPosition(x, y)) {
+            return false;
+        }
+        
         const terrainData = this.terrainSystem.getTerrainAt(x, y);
         
-        // Check if this entity can walk on this terrain type
+        // Check if this entity cannot walk on this terrain type
         if (this.movementRules.cannotWalkOn.includes(terrainData.terrain)) {
             return false;
         }
         
+        // Check if this entity can walk on this terrain type
         if (this.movementRules.canWalkOn.includes(terrainData.terrain)) {
             return true;
         }
@@ -48,12 +57,33 @@ class GameObject {
         return false;
     }
     
+    handleBlockedMovement(x, y) {
+        // Optional: Handle what happens when movement is blocked
+        // Could show messages, play sounds, etc.
+        if (!this.terrainSystem.isValidPosition(x, y)) {
+            console.log("Cannot move outside world boundaries");
+        } else {
+            const terrain = this.terrainSystem.getTerrainAt(x, y);
+            console.log(`Cannot walk on ${terrain.name}`);
+        }
+    }
+    
     setPosition(x, y) {
         if (this.terrainSystem.isValidPosition(x, y)) {
             this.x = x;
             this.y = y;
+            return true;
         }
+        return false;
     }
     
-    // No more world bounds here - terrain system handles it
+    // Get current terrain info
+    getCurrentTerrain() {
+        return this.terrainSystem.getTerrainAt(this.x, this.y);
+    }
+    
+    // Get position as object
+    getPosition() {
+        return { x: this.x, y: this.y };
+    }
 }

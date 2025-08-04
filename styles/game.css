@@ -1,84 +1,105 @@
-body {
+* {
     margin: 0;
-    padding: 20px;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
     font-family: Arial, sans-serif;
     background: #222;
     color: white;
+    overflow: hidden; /* Prevent scrollbars */
+    height: 100vh;
+    width: 100vw;
 }
 
 #gameArea {
-    width: 400px;
-    height: 400px;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
     background: #000;
-    border: 2px solid #444;
-    position: relative;
-    margin: 20px 0;
     font-family: 'Courier New', monospace;
     font-size: 12px;
-    line-height: 12px;
+    line-height: 12px; /* CRITICAL: Match font-size exactly */
+    letter-spacing: 0;  /* Remove any letter spacing */
+    word-spacing: 0;    /* Remove any word spacing */
+    white-space: pre;
     overflow: hidden;
     
-    /* Ensure crisp rendering */
+    /* Pixel perfect rendering */
     image-rendering: pixelated;
     image-rendering: -moz-crisp-edges;
     image-rendering: crisp-edges;
+    text-rendering: optimizeSpeed;
+    
+    /* Remove any default spacing */
+    border: none;
+    outline: none;
+    
+    /* Ensure no subpixel rendering */
+    transform: translateZ(0);
+    backface-visibility: hidden;
+    
+    /* Critical for removing gaps */
+    font-variant-ligatures: none;
+    text-decoration: none;
 }
 
-#player {
-    position: absolute;
-    width: 12px;
-    height: 12px;
-    background: transparent;
+.symbol {
+    display: inline;
     font-family: 'Courier New', monospace;
     font-size: 12px;
     line-height: 12px;
-    text-align: center;
-    color: #ff6b6b;
-    z-index: 10;
-    
-    /* Reset all spacing */
+    font-weight: normal; /* Changed from bold to avoid width inconsistencies */
     margin: 0;
     padding: 0;
-    border: none;
-    box-sizing: border-box;
+    border: 0;
+    vertical-align: baseline;
     
-    /* Prevent sub-pixel rendering */
-    transform: translateZ(0);
+    /* Ensure no spacing between characters */
+    letter-spacing: 0;
+    word-spacing: 0;
 }
 
-.controls {
-    margin: 10px 0;
+/* Player */
+.player {
+    color: #ff6b6b !important;
+    text-shadow: 0 0 2px #ff6b6b;
+    font-weight: bold; /* Player can stay bold for visibility */
 }
 
-button {
-    margin: 5px;
-    padding: 10px;
-    background: #333;
-    color: white;
-    border: 1px solid #666;
-    cursor: pointer;
-}
+/* Terrain colors - highly saturated for better visibility */
+.terrain-grass { color: #00ff00; }       /* Pure green for plains */
+.terrain-tree { color: #008000; }        /* Dark green for trees */
+.terrain-hills { color: #a0522d; }       /* Sienna for foothills */
+.terrain-stone { color: #808080; }       /* Gray for mountains */
+.terrain-water { color: #0080ff; }       /* Bright blue for water */
+.terrain-path { color: #daa520; }        /* Goldenrod for trails */
+.terrain-road { color: #8b4513; }        /* Saddle brown for roads */
+.terrain-building { color: #654321; }    /* Dark brown for buildings */
+.terrain-village { color: #ffa500; }     /* Orange for villages */
+.terrain-gold { color: #ffff00; }        /* Bright yellow for treasure */
+.terrain-unknown { color: #404040; }     /* Dark gray for unknown */
 
-button:hover {
-    background: #555;
-}
+/* Fog of War colors */
+.terrain-fog { color: #202020; }         /* Very dark gray for unexplored */
+.terrain-explored { opacity: 0.6; }      /* Dimmed for previously explored areas */
 
-button:disabled {
-    background: #111;
-    color: #666;
-    cursor: not-allowed;
-}
-
-.key-hint {
-    margin: 5px 0;
-    color: #aaa;
-    font-style: italic;
-}
-
+/* Status bar - overlay at bottom */
 .status {
-    margin: 20px 0;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: rgba(34, 34, 34, 0.9);
     display: flex;
     gap: 20px;
+    padding: 10px 20px;
+    border-top: 1px solid #444;
+    z-index: 1000;
+    font-size: 14px;
 }
 
 .status span {
@@ -97,23 +118,27 @@ button:disabled {
     color: #f44;
 }
 
-.terrain-tile {
-    position: absolute;
-    width: 12px;
-    height: 12px;
-    font-family: 'Courier New', monospace;
+.instructions {
+    position: fixed;
+    top: 10px;
+    left: 10px;
+    color: rgba(170, 170, 170, 0.8);
+    font-style: italic;
     font-size: 12px;
-    line-height: 12px;
-    text-align: center;
-    user-select: none;
-    margin: 0;           /* Add this */
-    padding: 0;          /* Add this */
-    border: none;        /* Add this */
-    box-sizing: border-box;  /* Add this */
+    z-index: 1000;
+    background: rgba(0, 0, 0, 0.5);
+    padding: 5px 10px;
+    border-radius: 3px;
 }
 
-.terrain-grass { color: #228b22; }
-.terrain-tree { color: #654321; }
-.terrain-hills { color: #696969; }
-.terrain-path { color: #d2b48c; }
-.terrain-stone { color: #808080; }
+/* Hide instructions after a few seconds */
+.instructions.fade-out {
+    animation: fadeOut 2s ease-in-out 3s forwards;
+}
+
+@keyframes fadeOut {
+    to {
+        opacity: 0;
+        pointer-events: none;
+    }
+}

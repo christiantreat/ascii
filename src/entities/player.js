@@ -1,3 +1,4 @@
+// In src/entities/player.js (new file)
 class Player extends GameObject {
     constructor(terrainSystem) {
         const playerMovementRules = {

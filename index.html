@@ -2,18 +2,23 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>Modular Command Game</title>
     <link rel="stylesheet" href="styles/game.css">
 </head>
 <body>
-    <div id="gameArea">
-        <div id="player"></div>
+    <div id="gameArea"></div>
+    
+    <div class="instructions fade-out">
+        Move: Arrow Keys/WASD • Fog: F • Vision: +/- • Exploration: [/]<br>
+        Terrain: 1-4 (flat/hilly/mountain/volcanic) • Modules: Ctrl+E/W/V • Info: I/T/M/S<br>
+        Regenerate: Ctrl+R (world) • Help: H
     </div>
         
     <div class="status">
         <span id="undoStatus">Undo: Available</span>
         <span id="redoStatus">Redo: Available</span>
+        <span id="position">Position: 0, 0</span>
     </div>
 
     <!-- Load modules in dependency order -->
@@ -21,8 +26,8 @@
     <script src="src/commands/move-command.js"></script>
     <script src="src/entities/game-object.js"></script>
     <script src="src/systems/world-generator.js"></script>
-<script src="src/systems/terrain-classifier.js"></script>
-<script src="src/systems/terrain-renderer.js"></script>
+    <script src="src/systems/terrain-classifier.js"></script>
+    <script src="src/systems/terrain-renderer.js"></script>
     <script src="src/systems/terrain-system.js"></script>
     <script src="src/systems/camera-system.js"></script>   
     <script src="src/systems/command-history.js"></script>
