@@ -135,6 +135,21 @@ class InputHandler {
             return true;
         }
         
+        // NEW: Deer debug mode
+        if (e.key === 'd' || e.key === 'D') {
+            e.preventDefault();
+            if (this.game.terrainSystem.deerManager) {
+                const debugEnabled = this.game.terrainSystem.deerManager.toggleDebugMode();
+                const deerStates = this.game.terrainSystem.deerManager.getDeerStates();
+                const message = debugEnabled ? 
+                    `Deer Debug: ON | W:${deerStates.wandering} A:${deerStates.alert} F:${deerStates.fleeing}` :
+                    'Deer Debug: OFF';
+                this.game.uiController.showMessage(message, 3000);
+                this.game.render();
+            }
+            return true;
+        }
+        
         // Quick terrain configuration (simplified)
         if (e.key === '1') {
             e.preventDefault();

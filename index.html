@@ -12,6 +12,7 @@
     <div class="instructions fade-out">
         Move: Arrow Keys/WASD • Fog: F • Vision: +/- • Exploration: [/]<br>
         <strong>Cone Vision:</strong> Forward range: Q/Z • Cone angle: X/V<br>
+        <strong>Deer Debug:</strong> Press D to toggle deer vision display<br>
         Terrain: 1-3 (flat/rolling/hilly) • Water: 4-6 (dry/normal/wet)<br>
         Modules: Ctrl+E (hills) Ctrl+W (water) • Info: I/T/S • Regenerate: Ctrl+R
     </div>
@@ -27,6 +28,10 @@
     <script src="src/commands/command-base.js"></script>
     <script src="src/commands/move-command.js"></script>
     <script src="src/entities/game-object.js"></script>
+    
+    <!-- NEW: Deer AI system -->
+    <script src="src/entities/deer.js"></script>
+    <script src="src/systems/deer-manager.js"></script>
     
     <!-- Simple modular terrain system -->
     <script src="src/systems/terrain-modules/terrain-module-base.js"></script>

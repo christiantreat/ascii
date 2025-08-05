@@ -41,6 +41,9 @@ class TerrainSystem {
         this.trees = []; // Array of tree objects
         this.treeFeatures = new Map(); // Map of position -> tree feature data
         
+        // NEW: Deer AI system
+        this.deerManager = null; // Will be initialized after world generation
+        
         // Initialize world generation
         this.initializeSimpleWorld();
         
@@ -69,6 +72,9 @@ class TerrainSystem {
         
         // NEW: Generate trees after basic terrain
         this.generateTrees();
+        
+        // NEW: Initialize deer system after trees are placed
+        this.deerManager = new DeerManager(this);
         
         console.log("World generation complete!");
         this.logWorldStats();
@@ -239,7 +245,8 @@ class TerrainSystem {
             displayName = this.terrainTypes[cell.terrain].name;
         }
         
-        const baseTerrain = {
+        // Create base terrain object
+        let baseTerrain = {
             symbol: displaySymbol,
             className: displayClassName,
             name: displayName,
@@ -248,6 +255,11 @@ class TerrainSystem {
             discovered: cell.discovered,
             elevation: cell.elevation
         };
+        
+        // NEW: Let deer manager modify the terrain if there's a deer here
+        if (this.deerManager) {
+            baseTerrain = this.deerManager.renderDeer(x, y, baseTerrain);
+        }
         
         // Apply fog of war
         if (this.fogOfWarEnabled && playerX !== null && playerY !== null) {
