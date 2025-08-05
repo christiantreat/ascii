@@ -1,3 +1,6 @@
+// === INPUT HANDLER (UPDATED FOR CONE VISION) ===
+// File: src/systems/input-handler.js
+
 class InputHandler {
     constructor(game) {
         this.game = game;
@@ -60,33 +63,75 @@ class InputHandler {
             return true;
         }
         
-        // Increase vision radius
+        // Increase base vision radius
         if (e.key === '=' || e.key === '+') {
             e.preventDefault();
             const currentRadius = this.game.terrainSystem.visionRadius;
             this.game.terrainSystem.setVisionRadius(currentRadius + 1);
-            this.game.uiController.showMessage(`Vision radius: ${currentRadius + 1}`, 1500);
+            this.game.uiController.showMessage(`Base vision radius: ${currentRadius + 1}`, 1500);
             this.game.render();
             return true;
         }
         
-        // Decrease vision radius
+        // Decrease base vision radius
         if (e.key === '-' || e.key === '_') {
             e.preventDefault();
             const currentRadius = this.game.terrainSystem.visionRadius;
             const newRadius = Math.max(1, currentRadius - 1);
             this.game.terrainSystem.setVisionRadius(newRadius);
-            this.game.uiController.showMessage(`Vision radius: ${newRadius}`, 1500);
+            this.game.uiController.showMessage(`Base vision radius: ${newRadius}`, 1500);
             this.game.render();
             return true;
         }
         
-        // Show fog of war status
+        // NEW: Increase forward vision range
+        if (e.key === 'q' || e.key === 'Q') {
+            e.preventDefault();
+            const currentRange = this.game.terrainSystem.forwardVisionRange;
+            this.game.terrainSystem.setForwardVisionRange(currentRange + 1);
+            this.game.uiController.showMessage(`Forward vision: ${currentRange + 1} tiles`, 1500);
+            this.game.render();
+            return true;
+        }
+        
+        // NEW: Decrease forward vision range
+        if (e.key === 'z' || e.key === 'Z') {
+            e.preventDefault();
+            const currentRange = this.game.terrainSystem.forwardVisionRange;
+            const newRange = Math.max(this.game.terrainSystem.visionRadius, currentRange - 1);
+            this.game.terrainSystem.setForwardVisionRange(newRange);
+            this.game.uiController.showMessage(`Forward vision: ${newRange} tiles`, 1500);
+            this.game.render();
+            return true;
+        }
+        
+        // NEW: Increase cone angle
+        if (e.key === 'x' || e.key === 'X') {
+            e.preventDefault();
+            const currentAngle = this.game.terrainSystem.coneAngle;
+            const newAngle = Math.min(180, currentAngle + 10);
+            this.game.terrainSystem.setConeAngle(newAngle);
+            this.game.uiController.showMessage(`Cone angle: ${newAngle}°`, 1500);
+            this.game.render();
+            return true;
+        }
+        
+        // NEW: Decrease cone angle
+        if (e.key === 'v' || e.key === 'V') {
+            e.preventDefault();
+            const currentAngle = this.game.terrainSystem.coneAngle;
+            const newAngle = Math.max(30, currentAngle - 10);
+            this.game.terrainSystem.setConeAngle(newAngle);
+            this.game.uiController.showMessage(`Cone angle: ${newAngle}°`, 1500);
+            this.game.render();
+            return true;
+        }
+        
+        // Show cone vision status
         if (e.key === 'i' || e.key === 'I') {
             e.preventDefault();
             const status = this.game.terrainSystem.getFogOfWarStatus();
-            const message = `FoW: ${status.enabled ? 'ON' : 'OFF'} | Vision: ${status.visionRadius} | Explored: ${status.exploredCount}`;
-            this.game.uiController.showMessage(message, 3000);
+            this.game.uiController.showConeVisionStatus(status);
             return true;
         }
         

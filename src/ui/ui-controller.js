@@ -1,3 +1,6 @@
+// === UI CONTROLLER (UPDATED FOR CONE VISION) ===
+// File: src/ui/ui-controller.js
+
 class UIController {
     constructor() {
         this.elements = this.initializeElements();
@@ -9,6 +12,7 @@ class UIController {
             undoStatus: document.getElementById('undoStatus'),
             redoStatus: document.getElementById('redoStatus'),
             position: document.getElementById('position'),
+            facing: document.getElementById('facing'), // NEW: facing direction display
             instructions: document.querySelector('.instructions')
         };
     }
@@ -40,6 +44,38 @@ class UIController {
     updatePlayerPosition(x, y) {
         if (this.elements.position) {
             this.elements.position.textContent = `Position: ${x}, ${y}`;
+        }
+    }
+    
+    // NEW: Update player facing direction display
+    updatePlayerFacing(facingDirection) {
+        if (this.elements.facing) {
+            this.elements.facing.textContent = `Facing: ${facingDirection}`;
+            this.elements.facing.className = 'facing-info';
+        } else {
+            // If facing element doesn't exist, create it dynamically
+            this.createFacingElement(facingDirection);
+        }
+    }
+    
+    createFacingElement(facingDirection) {
+        // Create facing direction element if it doesn't exist
+        const statusBar = document.querySelector('.status');
+        if (statusBar && !this.elements.facing) {
+            const facingElement = document.createElement('span');
+            facingElement.id = 'facing';
+            facingElement.className = 'facing-info';
+            facingElement.textContent = `Facing: ${facingDirection}`;
+            
+            // Insert after position element
+            const positionElement = this.elements.position;
+            if (positionElement) {
+                positionElement.insertAdjacentElement('afterend', facingElement);
+            } else {
+                statusBar.appendChild(facingElement);
+            }
+            
+            this.elements.facing = facingElement;
         }
     }
     
@@ -102,5 +138,11 @@ class UIController {
                 window.game.render();
             }, 100);
         }
+    }
+    
+    // NEW: Show cone vision status information
+    showConeVisionStatus(status) {
+        const message = `Vision: ${status.visionRadius}+${status.forwardVisionRange} tiles | Cone: ${status.coneAngle}° | Facing: ${status.facing}`;
+        this.showMessage(message, 4000);
     }
 }

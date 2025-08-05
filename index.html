@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Simple Modular Terrain Game</title>
+    <title>Simple Modular Terrain Game - Cone Vision</title>
     <link rel="stylesheet" href="styles/game.css">
 </head>
 <body>
@@ -11,6 +11,7 @@
     
     <div class="instructions fade-out">
         Move: Arrow Keys/WASD • Fog: F • Vision: +/- • Exploration: [/]<br>
+        <strong>Cone Vision:</strong> Forward range: Q/Z • Cone angle: X/V<br>
         Terrain: 1-3 (flat/rolling/hilly) • Water: 4-6 (dry/normal/wet)<br>
         Modules: Ctrl+E (hills) Ctrl+W (water) • Info: I/T/S • Regenerate: Ctrl+R
     </div>
@@ -19,6 +20,7 @@
         <span id="undoStatus">Undo: Available</span>
         <span id="redoStatus">Redo: Available</span>
         <span id="position">Position: 0, 0</span>
+        <span id="facing" class="facing-info">Facing: North</span>
     </div>
 
     <!-- Load simple modular system files -->

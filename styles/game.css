@@ -21,8 +21,8 @@ body {
     height: 100vh;
     background: #000;
     font-family: 'Courier New', monospace;
-    font-size: 12px;
-    line-height: 12px; /* CRITICAL: Match font-size exactly */
+    font-size: 24px;
+    line-height: 24px; /* CRITICAL: Match font-size exactly */
     letter-spacing: 0;  /* Remove any letter spacing */
     word-spacing: 0;    /* Remove any word spacing */
     white-space: pre;
@@ -50,8 +50,8 @@ body {
 .symbol {
     display: inline;
     font-family: 'Courier New', monospace;
-    font-size: 12px;
-    line-height: 12px;
+    font-size: 24px;
+    line-height: 24px;
     font-weight: normal; /* Changed from bold to avoid width inconsistencies */
     margin: 0;
     padding: 0;
@@ -70,8 +70,37 @@ body {
     font-weight: bold; /* Player can stay bold for visibility */
 }
 
-/* Terrain colors - highly saturated for better visibility */
-.terrain-grass { color: #00ff00; }       /* Pure green for plains */
+/* Terrain colors - with varied grass colors */
+.terrain-grass { color: #00ff00; }       /* Base green for plains - this will be overridden by varied colors */
+.terrain-grass-1 { color: #00e600; }     /* Slightly darker green */
+.terrain-grass-2 { color: #00ff00; }     /* Base bright green */
+.terrain-grass-3 { color: #1aff1a; }     /* Slightly lighter green */
+.terrain-grass-4 { color: #00cc00; }     /* Medium green */
+.terrain-grass-5 { color: #00b300; }     /* Darker green */
+.terrain-grass-6 { color: #33ff33; }     /* Light bright green */
+.terrain-grass-7 { color: #00d900; }     /* Medium-dark green */
+.terrain-grass-8 { color: #26ff26; }     /* Light green with slight variation */
+
+/* NEW: Tree feature colors */
+.tree_trunk { color: #8b4513; }   /* Brown for tree trunks */
+.tree_canopy { color: #008000; }  /* Medium green for tree canopy */
+.feature-tree-trunk { color: #8b4513; }   /* Brown for tree trunks (backup) */
+.feature-tree-canopy { color: #008000; }  /* Medium green for tree canopy (backup) */
+
+.terrain-tree { color: #008000; }        /* Dark green for trees (legacy) */
+.terrain-hills { color: #a0522d; }       /* Sienna for foothills */
+.terrain-stone { color: #808080; }       /* Gray for mountains */
+.terrain-water { color: #0080ff; }       /* Bright blue for water */
+.terrain-path { color: #daa520; }        /* Goldenrod for trails */
+.terrain-road { color: #8b4513; }        /* Saddle brown for roads */
+.terrain-building { color: #654321; }    /* Dark brown for buildings */
+.terrain-village { color: #ffa500; }     /* Orange for villages */
+.terrain-unknown { color: #404040; }     /* Dark gray for unknown */terrain-grass-4 { color: #00cc00; }     /* Medium green */
+.terrain-grass-5 { color: #00b300; }     /* Darker green */
+.terrain-grass-6 { color: #33ff33; }     /* Light bright green */
+.terrain-grass-7 { color: #00d900; }     /* Medium-dark green */
+.terrain-grass-8 { color: #26ff26; }     /* Light green with slight variation */
+
 .terrain-tree { color: #008000; }        /* Dark green for trees */
 .terrain-hills { color: #a0522d; }       /* Sienna for foothills */
 .terrain-stone { color: #808080; }       /* Gray for mountains */
@@ -80,8 +109,8 @@ body {
 .terrain-road { color: #8b4513; }        /* Saddle brown for roads */
 .terrain-building { color: #654321; }    /* Dark brown for buildings */
 .terrain-village { color: #ffa500; }     /* Orange for villages */
-.terrain-gold { color: #ffff00; }        /* Bright yellow for treasure */
 .terrain-unknown { color: #404040; }     /* Dark gray for unknown */
+/* REMOVED: .terrain-gold class for treasure */
 
 /* Fog of War colors */
 .terrain-fog { color: #202020; }         /* Very dark gray for unexplored */
