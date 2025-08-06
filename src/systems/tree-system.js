@@ -116,15 +116,16 @@ class TreeSystem {
         }
     }
     
-    isGoodTreeLocation(x, y, worldSystem) {
+   isGoodTreeLocation(x, y, worldSystem) {
         try {
-            // Trees can only be placed on plains terrain
-            if (!worldSystem || !worldSystem.classifier || !worldSystem.classifier.classifyTerrain) {
+            // FIXED: Changed from worldSystem.classifier to worldSystem
+            if (!worldSystem || !worldSystem.getTerrainAt) {
                 return false;
             }
             
-            const terrainType = worldSystem.classifier.classifyTerrain(x, y);
-            if (terrainType !== 'plains') return false;
+            // Get terrain data instead of trying to classify directly
+            const terrain = worldSystem.getTerrainAt(x, y);
+            if (terrain.terrain !== 'plains') return false;
             
             // Make sure we're not too close to world boundaries
             const bounds = worldSystem.getWorldBounds();
@@ -182,21 +183,25 @@ class TreeSystem {
         }
     }
     
-    // Query methods
+// Query methods
     getFeatureAt(x, y) {
         const key = `${x},${y}`;
         return this.treeFeatures.get(key) || null;
     }
     
+    // FIXED: Only tree trunks block movement - canopy allows movement
     canMoveTo(x, y) {
         try {
-            // Check if there's a blocking tree feature (tree trunk)
+            // Check if there's a blocking tree feature
             const feature = this.getFeatureAt(x, y);
+            
+            // ONLY tree trunks block movement - canopy allows walking under
             if (feature && feature.type === 'tree_trunk') {
                 return false; // Can't walk through tree trunks
             }
             
             // Tree canopy allows movement (walking under the tree)
+            // No tree feature also allows movement
             return true;
         } catch (error) {
             console.warn(`Error checking tree movement to (${x}, ${y}):`, error);

@@ -4,17 +4,20 @@
 
 class TerrainSystem {
     constructor() {
-        // Initialize all subsystems
-        this.worldSystem = new WorldSystem();
-        this.fogSystem = new FogOfWarSystem();
-        this.treeSystem = new TreeSystem();
-        this.deerSystem = new DeerSystem(this);
-        this.renderer = new TerrainRenderer(this.getTerrainTypes(), this.getFeatureTypes());
-        
-        // Initialize world
-        this.initializeWorld();
-        this.calibrateDisplay();
-    }
+            // Initialize all subsystems
+            this.worldSystem = new WorldSystem();
+            this.fogSystem = new FogOfWarSystem();
+            this.treeSystem = new TreeSystem();
+            this.deerSystem = new DeerSystem(this);
+            this.renderer = new TerrainRenderer(this.getTerrainTypes(), this.getFeatureTypes());
+
+            // ADDED: Give fog system reference to this terrain system for line of sight blocking
+            this.fogSystem.setTerrainSystem(this);
+
+            // Initialize world
+            this.initializeWorld();
+            this.calibrateDisplay();
+        }
     
     // Define terrain and feature types (these could be moved to config files later)
     getTerrainTypes() {
@@ -64,7 +67,7 @@ class TerrainSystem {
         this.deerSystem.clear();
     }
     
-    // Main terrain query method - coordinates all subsystems
+// Main terrain query method - coordinates all subsystems
     getTerrainAt(x, y, playerX = null, playerY = null) {
         if (!this.isValidPosition(x, y)) {
             return this.getTerrainTypes().unknown;
@@ -81,10 +84,19 @@ class TerrainSystem {
                 terrain.symbol = this.getFeatureTypes()[treeFeature.type].symbol;
                 terrain.className = this.getFeatureTypes()[treeFeature.type].className;
                 terrain.name = this.getFeatureTypes()[treeFeature.type].name;
+                
+                // FIXED: If this is tree canopy, it should render on top of everything
+                // This creates the "walking under trees" effect
+                if (treeFeature.type === 'tree_canopy') {
+                    // Tree canopy takes absolute priority - player/deer are hidden underneath
+                    terrain.renderPriority = 'canopy';
+                }
             }
             
-            // Add deer if present
-            terrain = this.deerSystem.renderDeer(x, y, terrain);
+            // Add deer if present (but only if not under canopy)
+            if (!terrain.renderPriority || terrain.renderPriority !== 'canopy') {
+                terrain = this.deerSystem.renderDeer(x, y, terrain);
+            }
             
             // Apply fog of war
             if (this.fogSystem.isEnabled() && playerX !== null && playerY !== null) {
@@ -98,15 +110,15 @@ class TerrainSystem {
         }
     }
     
-    // Movement validation - checks all blocking systems
+// Movement validation - checks all blocking systems
     canMoveTo(x, y) {
         try {
             if (!this.isValidPosition(x, y)) return false;
             
-            // Check basic terrain walkability
+            // Check basic terrain walkability (water, etc.)
             if (!this.worldSystem.canMoveTo(x, y)) return false;
             
-            // Check if trees block movement
+            // Check if trees block movement (ONLY tree trunks should block)
             if (!this.treeSystem.canMoveTo(x, y)) return false;
             
             return true;

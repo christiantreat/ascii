@@ -197,13 +197,14 @@ class DeerSystem {
         return this.deer.find(deer => deer.x === x && deer.y === y);
     }
     
-    renderDeer(x, y, terrain) {
+renderDeer(x, y, terrain) {
         const deer = this.getDeerAt(x, y);
         if (!deer) return terrain;
         
-        // If deer is under tree canopy, prioritize the tree
+        // FIXED: If there's tree canopy, prioritize the tree canopy over deer
+        // This creates the "deer walking under trees" visual effect
         if (terrain.feature && terrain.feature.type === 'tree_canopy') {
-            return terrain;
+            return terrain; // Show tree canopy, hide deer underneath
         }
         
         let deerSymbol = this.deerSymbol;

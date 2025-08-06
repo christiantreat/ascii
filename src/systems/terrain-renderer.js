@@ -78,7 +78,7 @@ class TerrainRenderer {
         return `symbol ${terrain.className}`;
     }
     
-    render(gameArea, cameraStartX, cameraStartY, viewWidth, viewHeight, playerX, playerY, getTerrainFunction) {
+render(gameArea, cameraStartX, cameraStartY, viewWidth, viewHeight, playerX, playerY, getTerrainFunction) {
         this.frameCount++;
         let display = '';
         
@@ -93,11 +93,18 @@ class TerrainRenderer {
                 // Get terrain information for this tile
                 const terrain = getTerrainFunction(worldX, worldY);
                 
-                // FIXED: Simplified player rendering logic
+                // FIXED: Handle rendering priority for tree canopy over player
                 if (worldX === playerX && worldY === playerY) {
-                    // Always show player as player symbol, regardless of what's underneath
-                    symbol = '◊';
-                    className = 'symbol player';
+                    // Check if player is under tree canopy
+                    if (terrain.feature && terrain.feature.type === 'tree_canopy') {
+                        // Show tree canopy instead of player (player is underneath)
+                        symbol = terrain.symbol || '♠';
+                        className = this.getTerrainClassName(terrain, worldX, worldY);
+                    } else {
+                        // Normal player rendering
+                        symbol = '◊';
+                        className = 'symbol player';
+                    }
                 } else {
                     // Use the terrain/feature/deer symbol
                     symbol = terrain.symbol || '░';

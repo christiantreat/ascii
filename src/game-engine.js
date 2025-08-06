@@ -8,7 +8,7 @@ class GameEngine {
         // Initialize terrain system first
         this.terrainSystem = new TerrainSystem();
         
-        // Create player with terrain system
+        // Keep using GameObject - this is correct!
         this.player = new GameObject(this.terrainSystem);
         
         this.commandHistory = new CommandHistory();
@@ -59,9 +59,9 @@ class GameEngine {
                 const command = new CommandClass(deltaX, deltaY);
                 this.commandHistory.executeCommand(command, this.player);
                 
-                // CRITICAL: Immediately notify deer of player movement
+                // FIXED: Let TerrainSystem handle player movement notification
                 if (this.player.x !== oldX || this.player.y !== oldY) {
-                    this.onPlayerMoved(this.player.x, this.player.y, oldX, oldY);
+                    this.terrainSystem.onPlayerMoved(this.player.x, this.player.y);
                 }
             } else {
                 // Movement blocked - show a message
@@ -82,53 +82,14 @@ class GameEngine {
         this.updateUI();
     }
     
-    // NEW: Critical method - called immediately when player moves
-    onPlayerMoved(newX, newY, oldX, oldY) {
-        try {
-            // Immediately notify deer manager of player movement
-            if (this.terrainSystem.deerManager) {
-                this.terrainSystem.deerManager.onPlayerMoved(newX, newY);
-            }
-            
-            // Debug logging for movement
-            if (this.terrainSystem.deerManager && this.terrainSystem.deerManager.debugMode) {
-                const deltaX = newX - oldX;
-                const deltaY = newY - oldY;
-                const direction = this.getDirectionName(deltaX, deltaY);
-                console.log(`Player moved ${direction} from (${oldX}, ${oldY}) to (${newX}, ${newY})`);
-                
-                // Show nearby deer info
-                const nearbyDeer = this.terrainSystem.deerManager.getDeerNearPlayer(newX, newY, 10);
-                if (nearbyDeer.length > 0) {
-                    console.log(`${nearbyDeer.length} deer within 10 tiles:`, 
-                        nearbyDeer.map(d => `Deer ${d.id}: ${d.state} at (${d.x}, ${d.y})`));
-                }
-            }
-        } catch (error) {
-            console.error("Error notifying deer of player movement:", error);
-        }
-    }
-    
-    getDirectionName(deltaX, deltaY) {
-        if (deltaX === 0 && deltaY === -1) return 'North';
-        if (deltaX === 0 && deltaY === 1) return 'South';
-        if (deltaX === -1 && deltaY === 0) return 'West';
-        if (deltaX === 1 && deltaY === 0) return 'East';
-        if (deltaX === -1 && deltaY === -1) return 'Northwest';
-        if (deltaX === 1 && deltaY === -1) return 'Northeast';
-        if (deltaX === -1 && deltaY === 1) return 'Southwest';
-        if (deltaX === 1 && deltaY === 1) return 'Southeast';
-        return 'Unknown';
-    }
-    
     undo() {
         const oldX = this.player.x;
         const oldY = this.player.y;
         
         if (this.commandHistory.undo(this.player)) {
-            // If undo moved the player, notify deer
+            // FIXED: Let TerrainSystem handle the notification
             if (this.player.x !== oldX || this.player.y !== oldY) {
-                this.onPlayerMoved(this.player.x, this.player.y, oldX, oldY);
+                this.terrainSystem.onPlayerMoved(this.player.x, this.player.y);
             }
             
             this.render();
@@ -141,9 +102,9 @@ class GameEngine {
         const oldY = this.player.y;
         
         if (this.commandHistory.redo(this.player)) {
-            // If redo moved the player, notify deer
+            // FIXED: Let TerrainSystem handle the notification
             if (this.player.x !== oldX || this.player.y !== oldY) {
-                this.onPlayerMoved(this.player.x, this.player.y, oldX, oldY);
+                this.terrainSystem.onPlayerMoved(this.player.x, this.player.y);
             }
             
             this.render();
@@ -162,43 +123,15 @@ class GameEngine {
         this.uiController.updatePlayerPosition(this.player.x, this.player.y);
         this.uiController.updatePlayerFacing(this.terrainSystem.getFacingDirectionName());
         
-        // NEW: Show deer reaction info in debug mode
-        if (this.terrainSystem.deerManager && this.terrainSystem.deerManager.debugMode) {
-            const deerStats = this.terrainSystem.deerManager.getDeerBehaviorStats();
+        // Show deer reaction info in debug mode
+        if (this.terrainSystem.deerSystem && this.terrainSystem.deerSystem.debugMode) {
+            const deerStats = this.terrainSystem.deerSystem.getDeerBehaviorStats();
             if (deerStats.totalReactions > 0) {
                 this.uiController.showMessage(
                     `Deer Reactions: ${deerStats.totalReactions} pending | States: W:${deerStats.states.wandering} A:${deerStats.states.alert} F:${deerStats.states.fleeing}`, 
                     1000
                 );
             }
-        }
-    }
-    
-    // NEW: Method to test deer reaction speed
-    testDeerReactions() {
-        if (!this.terrainSystem.deerManager) {
-            console.log("No deer manager available");
-            return;
-        }
-        
-        console.log("Testing deer reaction speed...");
-        const startTime = Date.now();
-        
-        // Simulate rapid player movement
-        for (let i = 0; i < 5; i++) {
-            setTimeout(() => {
-                const testX = this.player.x + (Math.random() - 0.5) * 10;
-                const testY = this.player.y + (Math.random() - 0.5) * 10;
-                this.terrainSystem.deerManager.onPlayerMoved(testX, testY);
-                
-                if (i === 4) {
-                    const endTime = Date.now();
-                    const stats = this.terrainSystem.deerManager.getDeerBehaviorStats();
-                    console.log(`Reaction test completed in ${endTime - startTime}ms`);
-                    console.log(`Total reactions generated: ${stats.totalReactions}`);
-                    console.log(`Reactive deer: ${stats.reactiveDeer.length}`);
-                }
-            }, i * 100);
         }
     }
 }

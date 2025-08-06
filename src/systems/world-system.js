@@ -35,7 +35,7 @@ class WorldSystem {
             // Generate the world
             this.worldGenerator.generateWorld(0, 0);
             
-            // Create terrain classifier
+            // Create terrain classifier - FIXED: Pass the correct world generator
             this.classifier = new SimpleTerrainClassifier(this.worldGenerator);
             
             console.log("World system initialized successfully!");
@@ -91,15 +91,14 @@ class WorldSystem {
         try {
             const key = this.getWorldKey(x, y);
             
+            // FIXED: Use classifier properly
             const terrainType = this.classifier ? this.classifier.classifyTerrain(x, y) : 'plains';
             const elevation = this.worldGenerator ? this.worldGenerator.getElevationAt(x, y) : 0.2;
-            const analysis = this.worldGenerator ? this.worldGenerator.analyzePosition(x, y) : null;
             
             const cell = {
                 terrain: terrainType,
                 discovered: false,
                 elevation: elevation,
-                analysis: analysis,
                 walkable: this.isTerrainWalkable(terrainType)
             };
             
@@ -111,7 +110,6 @@ class WorldSystem {
                 terrain: 'plains',
                 discovered: false,
                 elevation: 0.2,
-                analysis: null,
                 walkable: true
             };
             this.world.set(this.getWorldKey(x, y), cell);
@@ -137,7 +135,7 @@ class WorldSystem {
     }
     
     isTerrainWalkable(terrainType) {
-        const unwalkableTerrains = ['lake'];
+        const unwalkableTerrains = ['lake', 'river']; // FIXED: Added river
         return !unwalkableTerrains.includes(terrainType);
     }
     

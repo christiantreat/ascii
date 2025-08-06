@@ -19,6 +19,14 @@ class FogOfWarSystem {
         
         // Terrain types for fog display
         this.fogTerrain = { symbol: '▓', className: 'terrain-fog', name: 'Unknown' };
+        
+        // Reference to terrain system for line of sight blocking
+        this.terrainSystem = null;
+    }
+    
+    // ADDED: Method to set terrain system reference
+    setTerrainSystem(terrainSystem) {
+        this.terrainSystem = terrainSystem;
     }
     
     // Configuration methods
@@ -75,7 +83,7 @@ class FogOfWarSystem {
             // Previously explored but not currently visible - show dimmed
             return {
                 ...terrain,
-                className: terrain.className + ' explored'
+                className: terrain.className + ' terrain-explored'
             };
         }
         
@@ -119,6 +127,7 @@ class FogOfWarSystem {
         }
     }
     
+    // FIXED: Line of sight now checks for tree blocking
     hasLineOfSight(fromX, fromY, toX, toY) {
         try {
             // Simple line of sight using Bresenham's line algorithm
@@ -142,9 +151,10 @@ class FogOfWarSystem {
                 
                 // Skip the starting position for blocking checks
                 if (i > 0) {
-                    // For now, we'll assume trees and other features can block vision
-                    // This would need to be coordinated with other systems
-                    // For simplicity, we'll keep line of sight mostly clear
+                    // RESTORED: Check if trees block line of sight
+                    if (this.isPositionBlocking(x, y)) {
+                        return false; // Vision is blocked by a tree
+                    }
                 }
                 
                 if (error > 0) {
@@ -159,6 +169,28 @@ class FogOfWarSystem {
             return true; // Clear line of sight
         } catch (error) {
             console.warn("Error calculating line of sight:", error);
+            return false;
+        }
+    }
+    
+    // RESTORED: Check if a position blocks line of sight
+    isPositionBlocking(x, y) {
+        try {
+            if (!this.terrainSystem) return false;
+            
+            // Check if there's a tree feature that blocks vision
+            const feature = this.terrainSystem.getFeatureAt(x, y);
+            
+            if (feature) {
+                // Both tree trunks AND tree canopy block line of sight
+                if (feature.type === 'tree_trunk' || feature.type === 'tree_canopy') {
+                    return true;
+                }
+            }
+            
+            return false;
+        } catch (error) {
+            console.warn("Error checking position blocking:", error);
             return false;
         }
     }
