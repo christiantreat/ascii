@@ -1,5 +1,6 @@
-// === IMPROVED INPUT HANDLER WITH DEER CONTROLS ===
+// === COMPLETE UPDATED INPUT HANDLER WITH GEOLOGY ===
 // File: src/systems/input-handler.js
+// COMPLETE REPLACEMENT with geology controls added
 
 class InputHandler {
     constructor(game) {
@@ -42,7 +43,7 @@ class InputHandler {
             return true;
         }
         
-        // Increase exploration radius
+        // Vision controls
         if (e.key === ']') {
             e.preventDefault();
             const currentRadius = this.game.terrainSystem.exploredRadius;
@@ -52,10 +53,9 @@ class InputHandler {
             return true;
         }
         
-        // Decrease exploration radius
         if (e.key === '[') {
             e.preventDefault();
-            const currentRadius = this.game.terrainSystem.exploredRadius;
+            const currentRadius = this.game.terrainSystem.fogSystem.exploredRadius;
             const newRadius = Math.max(0, currentRadius - 1);
             this.game.terrainSystem.setExploredRadius(newRadius);
             this.game.uiController.showMessage(`Exploration radius: ${newRadius}`, 1500);
@@ -63,20 +63,19 @@ class InputHandler {
             return true;
         }
         
-        // Increase base vision radius
+        // Base vision radius controls
         if (e.key === '=' || e.key === '+') {
             e.preventDefault();
-            const currentRadius = this.game.terrainSystem.visionRadius;
+            const currentRadius = this.game.terrainSystem.fogSystem.visionRadius;
             this.game.terrainSystem.setVisionRadius(currentRadius + 1);
             this.game.uiController.showMessage(`Base vision radius: ${currentRadius + 1}`, 1500);
             this.game.render();
             return true;
         }
         
-        // Decrease base vision radius
         if (e.key === '-' || e.key === '_') {
             e.preventDefault();
-            const currentRadius = this.game.terrainSystem.visionRadius;
+            const currentRadius = this.game.terrainSystem.fogSystem.visionRadius;
             const newRadius = Math.max(1, currentRadius - 1);
             this.game.terrainSystem.setVisionRadius(newRadius);
             this.game.uiController.showMessage(`Base vision radius: ${newRadius}`, 1500);
@@ -84,31 +83,30 @@ class InputHandler {
             return true;
         }
         
-        // Increase forward vision range
+        // Forward vision controls
         if (e.key === 'q' || e.key === 'Q') {
             e.preventDefault();
-            const currentRange = this.game.terrainSystem.forwardVisionRange;
+            const currentRange = this.game.terrainSystem.fogSystem.forwardVisionRange;
             this.game.terrainSystem.setForwardVisionRange(currentRange + 1);
             this.game.uiController.showMessage(`Forward vision: ${currentRange + 1} tiles`, 1500);
             this.game.render();
             return true;
         }
         
-        // Decrease forward vision range
         if (e.key === 'u' || e.key === 'U') {
             e.preventDefault();
-            const currentRange = this.game.terrainSystem.forwardVisionRange;
-            const newRange = Math.max(this.game.terrainSystem.visionRadius, currentRange - 1);
+            const currentRange = this.game.terrainSystem.fogSystem.forwardVisionRange;
+            const newRange = Math.max(this.game.terrainSystem.fogSystem.visionRadius, currentRange - 1);
             this.game.terrainSystem.setForwardVisionRange(newRange);
             this.game.uiController.showMessage(`Forward vision: ${newRange} tiles`, 1500);
             this.game.render();
             return true;
         }
         
-        // Increase cone angle
+        // Cone angle controls
         if (e.key === 'x' || e.key === 'X') {
             e.preventDefault();
-            const currentAngle = this.game.terrainSystem.coneAngle;
+            const currentAngle = this.game.terrainSystem.fogSystem.coneAngle;
             const newAngle = Math.min(180, currentAngle + 10);
             this.game.terrainSystem.setConeAngle(newAngle);
             this.game.uiController.showMessage(`Cone angle: ${newAngle}°`, 1500);
@@ -116,10 +114,9 @@ class InputHandler {
             return true;
         }
         
-        // Decrease cone angle
         if (e.key === 'v' || e.key === 'V') {
             e.preventDefault();
-            const currentAngle = this.game.terrainSystem.coneAngle;
+            const currentAngle = this.game.terrainSystem.fogSystem.coneAngle;
             const newAngle = Math.max(30, currentAngle - 10);
             this.game.terrainSystem.setConeAngle(newAngle);
             this.game.uiController.showMessage(`Cone angle: ${newAngle}°`, 1500);
@@ -127,7 +124,7 @@ class InputHandler {
             return true;
         }
         
-        // Show cone vision status
+        // Show vision status
         if (e.key === 'i' || e.key === 'I') {
             e.preventDefault();
             const status = this.game.terrainSystem.getFogOfWarStatus();
@@ -135,12 +132,12 @@ class InputHandler {
             return true;
         }
         
-        // IMPROVED: Deer debug mode - Shift+D
+        // Deer debug controls
         if (e.key === 'D' && e.shiftKey) {
             e.preventDefault();
-            if (this.game.terrainSystem.deerManager) {
-                const debugEnabled = this.game.terrainSystem.deerManager.toggleDebugMode();
-                const deerStates = this.game.terrainSystem.deerManager.getDeerStates();
+            if (this.game.terrainSystem.deerSystem) {
+                const debugEnabled = this.game.terrainSystem.deerSystem.toggleDebugMode();
+                const deerStates = this.game.terrainSystem.deerSystem.getDeerStates();
                 const message = debugEnabled ? 
                     `Deer Debug: ON | W:${deerStates.wandering} A:${deerStates.alert} F:${deerStates.fleeing}` :
                     'Deer Debug: OFF';
@@ -150,11 +147,11 @@ class InputHandler {
             return true;
         }
         
-        // NEW: Scare all deer - Shift+S
+        // Scare all deer
         if (e.key === 'S' && e.shiftKey) {
             e.preventDefault();
-            if (this.game.terrainSystem.deerManager) {
-                this.game.terrainSystem.deerManager.scareAllDeer(
+            if (this.game.terrainSystem.deerSystem) {
+                this.game.terrainSystem.deerSystem.scareAllDeer(
                     this.game.player.x, 
                     this.game.player.y
                 );
@@ -164,40 +161,42 @@ class InputHandler {
             return true;
         }
         
-        // NEW: Calm all deer - Shift+C
+        // Calm all deer
         if (e.key === 'C' && e.shiftKey) {
             e.preventDefault();
-            if (this.game.terrainSystem.deerManager) {
-                this.game.terrainSystem.deerManager.calmAllDeer();
+            if (this.game.terrainSystem.deerSystem) {
+                this.game.terrainSystem.deerSystem.calmAllDeer();
                 this.game.uiController.showMessage('All deer calmed down', 2000);
                 this.game.render();
             }
             return true;
         }
         
-        // NEW: Show deer behavior stats - Shift+B
+        // Show deer behavior stats
         if (e.key === 'B' && e.shiftKey) {
             e.preventDefault();
-            if (this.game.terrainSystem.deerManager) {
-                const stats = this.game.terrainSystem.deerManager.getDeerBehaviorStats();
+            if (this.game.terrainSystem.deerSystem) {
+                const stats = this.game.terrainSystem.deerSystem.getDeerBehaviorStats();
                 const message = `Deer Stats: ${stats.totalDeer} total | Avg dist: ${stats.averageDistanceFromPlayer} | W:${stats.states.wandering} A:${stats.states.alert} F:${stats.states.fleeing}`;
                 this.game.uiController.showMessage(message, 4000);
             }
             return true;
         }
         
-        // NEW: Respawn deer - Shift+R
+        // Respawn deer
         if (e.key === 'R' && e.shiftKey) {
             e.preventDefault();
-            if (this.game.terrainSystem.deerManager) {
-                this.game.terrainSystem.deerManager.respawnDeer();
+            if (this.game.terrainSystem.deerSystem) {
+                this.game.terrainSystem.deerSystem.respawnDeer();
                 this.game.uiController.showMessage('Deer respawned in new locations', 2000);
                 this.game.render();
             }
             return true;
         }
         
-        // Quick terrain configuration
+        // === ORIGINAL TERRAIN CONTROLS ===
+        
+        // Quick terrain configuration (original)
         if (e.key === '1') {
             e.preventDefault();
             this.game.terrainSystem.quickConfigElevation('flat').regenerateWorld();
@@ -222,7 +221,7 @@ class InputHandler {
             return true;
         }
         
-        // Water level controls
+        // Water level controls (original)
         if (e.key === '4') {
             e.preventDefault();
             this.game.terrainSystem.quickConfigWater('dry').regenerateWorld();
@@ -247,7 +246,45 @@ class InputHandler {
             return true;
         }
         
-        // Module controls
+        // === NEW GEOLOGICAL TERRAIN PRESETS ===
+        
+        if (e.key === '7') {
+            e.preventDefault();
+            this.game.terrainSystem.worldSystem.worldGenerator.createMountainousWorld();
+            this.game.terrainSystem.regenerateWorld();
+            this.game.uiController.showMessage('Geology: Mountainous terrain', 2000);
+            this.game.render();
+            return true;
+        }
+        
+        if (e.key === '8') {
+            e.preventDefault();
+            this.game.terrainSystem.worldSystem.worldGenerator.createRollingHillsWorld();
+            this.game.terrainSystem.regenerateWorld();
+            this.game.uiController.showMessage('Geology: Rolling hills', 2000);
+            this.game.render();
+            return true;
+        }
+        
+        if (e.key === '9') {
+            e.preventDefault();
+            this.game.terrainSystem.worldSystem.worldGenerator.createFlatPlainsWorld();
+            this.game.terrainSystem.regenerateWorld();
+            this.game.uiController.showMessage('Geology: Flat plains', 2000);
+            this.game.render();
+            return true;
+        }
+        
+        if (e.key === '0') {
+            e.preventDefault();
+            this.game.terrainSystem.worldSystem.worldGenerator.createVolcanicWorld();
+            this.game.terrainSystem.regenerateWorld();
+            this.game.uiController.showMessage('Geology: Volcanic terrain', 2000);
+            this.game.render();
+            return true;
+        }
+        
+        // Module controls (original)
         if (e.key === 'e' && (e.ctrlKey || e.metaKey)) {
             e.preventDefault();
             this.game.terrainSystem.regenerateModule('elevation');
@@ -264,7 +301,16 @@ class InputHandler {
             return true;
         }
         
-        // Module status
+        // NEW: Geology module control
+        if (e.key === 'g' && (e.ctrlKey || e.metaKey)) {
+            e.preventDefault();
+            this.game.terrainSystem.regenerateModule('geology');
+            this.game.uiController.showMessage('Geology regenerated', 1500);
+            this.game.render();
+            return true;
+        }
+        
+        // Module status (enhanced)
         if (e.key === 'm' && (e.ctrlKey || e.metaKey)) {
             e.preventDefault();
             const status = this.game.terrainSystem.getModuleStatus();
@@ -273,7 +319,7 @@ class InputHandler {
             return true;
         }
         
-        // Terrain statistics
+        // Terrain statistics (original)
         if (e.key === 's' && (e.ctrlKey || e.metaKey)) {
             e.preventDefault();
             const stats = this.game.terrainSystem.getTerrainStatistics();
@@ -286,19 +332,47 @@ class InputHandler {
             return true;
         }
         
-        // Show terrain analysis
+        // === ENHANCED TERRAIN ANALYSIS (with geology) ===
+        
         if (e.key === 't' || e.key === 'T') {
             e.preventDefault();
-            const analysis = this.game.terrainSystem.getTerrainAnalysis(
+            const analysis = this.game.terrainSystem.worldSystem.worldGenerator.analyzePosition(
                 this.game.player.x, 
                 this.game.player.y
             );
-            const message = `Terrain: ${analysis.terrain} | Elev: ${analysis.elevation.toFixed(2)} | Settlement: ${analysis.suitability.settlement.toFixed(2)}`;
+            
+            // Show geological information
+            const message = `Terrain: ${analysis.terrain} | Rock: ${analysis.geology.rockType} | Soil: ${analysis.geology.soilQuality.toFixed(2)} | Elev: ${analysis.elevation.toFixed(2)} | Settlement: ${analysis.suitability.settlement.toFixed(2)}`;
+            this.game.uiController.showMessage(message, 5000);
+            return true;
+        }
+        
+        // NEW: Geological details
+        if (e.key === 'G' && !e.shiftKey) {
+            e.preventDefault();
+            const analysis = this.game.terrainSystem.worldSystem.worldGenerator.analyzePosition(
+                this.game.player.x, 
+                this.game.player.y
+            );
+            
+            const suitableFor = analysis.geology.suitable_for.join(', ') || 'general use';
+            const message = `Geology: ${analysis.geology.rockType} rock, soil quality ${analysis.geology.soilQuality.toFixed(2)} | Good for: ${suitableFor}`;
             this.game.uiController.showMessage(message, 4000);
             return true;
         }
         
-        // Regenerate world
+        // NEW: Show geological statistics
+        if (e.key === 'L' && (e.ctrlKey || e.metaKey)) {
+            e.preventDefault();
+            const geologyStats = this.game.terrainSystem.worldSystem.worldGenerator.getGeologyStats();
+            const rockTypes = Object.entries(geologyStats.rockDistribution)
+                .map(([rock, count]) => `${rock}: ${count}`)
+                .join(' | ');
+            this.game.uiController.showMessage(`Geology: ${geologyStats.formations} formations | ${rockTypes}`, 4000);
+            return true;
+        }
+        
+        // Regenerate world (original)
         if (e.key === 'r' && (e.ctrlKey || e.metaKey)) {
             e.preventDefault();
             this.game.terrainSystem.regenerateWorld();
@@ -307,7 +381,7 @@ class InputHandler {
             return true;
         }
         
-        // Toggle instructions
+        // Toggle instructions (original)
         if (e.key === 'h' || e.key === 'H') {
             e.preventDefault();
             this.game.uiController.toggleInstructions();
@@ -321,10 +395,9 @@ class InputHandler {
         // Only process if Ctrl or Cmd is held
         if (!(e.ctrlKey || e.metaKey)) return false;
         
-        // Prevent conflict with terrain controls - check for exact key combinations
+        // Prevent conflict with terrain controls
         if (e.key === 'z' && !e.shiftKey) {
-            // Only handle if not combined with other special controls
-            if (!['e', 'w', 'm', 's', 'r'].includes(e.key)) {
+            if (!['e', 'w', 'g', 'm', 's', 'r', 'l'].includes(e.key)) {
                 e.preventDefault();
                 this.game.undo();
                 return true;
@@ -359,7 +432,6 @@ class InputHandler {
         };
         
         // Only allow movement if no modifier keys are pressed
-        // This prevents conflicts with terrain controls
         if (e.ctrlKey || e.metaKey || e.altKey || e.shiftKey) {
             return; // Don't handle movement if modifier keys are pressed
         }
