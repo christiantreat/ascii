@@ -1,4 +1,4 @@
-// === INPUT HANDLER (UPDATED FOR CONE VISION) ===
+// === IMPROVED INPUT HANDLER WITH DEER CONTROLS ===
 // File: src/systems/input-handler.js
 
 class InputHandler {
@@ -84,7 +84,7 @@ class InputHandler {
             return true;
         }
         
-        // NEW: Increase forward vision range
+        // Increase forward vision range
         if (e.key === 'q' || e.key === 'Q') {
             e.preventDefault();
             const currentRange = this.game.terrainSystem.forwardVisionRange;
@@ -94,8 +94,8 @@ class InputHandler {
             return true;
         }
         
-        // NEW: Decrease forward vision range
-        if (e.key === 'z' || e.key === 'Z') {
+        // Decrease forward vision range
+        if (e.key === 'u' || e.key === 'U') {
             e.preventDefault();
             const currentRange = this.game.terrainSystem.forwardVisionRange;
             const newRange = Math.max(this.game.terrainSystem.visionRadius, currentRange - 1);
@@ -105,7 +105,7 @@ class InputHandler {
             return true;
         }
         
-        // NEW: Increase cone angle
+        // Increase cone angle
         if (e.key === 'x' || e.key === 'X') {
             e.preventDefault();
             const currentAngle = this.game.terrainSystem.coneAngle;
@@ -116,7 +116,7 @@ class InputHandler {
             return true;
         }
         
-        // NEW: Decrease cone angle
+        // Decrease cone angle
         if (e.key === 'v' || e.key === 'V') {
             e.preventDefault();
             const currentAngle = this.game.terrainSystem.coneAngle;
@@ -135,8 +135,8 @@ class InputHandler {
             return true;
         }
         
-        // NEW: Deer debug mode
-        if (e.key === 'd' || e.key === 'D') {
+        // IMPROVED: Deer debug mode - Shift+D
+        if (e.key === 'D' && e.shiftKey) {
             e.preventDefault();
             if (this.game.terrainSystem.deerManager) {
                 const debugEnabled = this.game.terrainSystem.deerManager.toggleDebugMode();
@@ -150,7 +150,54 @@ class InputHandler {
             return true;
         }
         
-        // Quick terrain configuration (simplified)
+        // NEW: Scare all deer - Shift+S
+        if (e.key === 'S' && e.shiftKey) {
+            e.preventDefault();
+            if (this.game.terrainSystem.deerManager) {
+                this.game.terrainSystem.deerManager.scareAllDeer(
+                    this.game.player.x, 
+                    this.game.player.y
+                );
+                this.game.uiController.showMessage('All deer scared! Watch them flee!', 2000);
+                this.game.render();
+            }
+            return true;
+        }
+        
+        // NEW: Calm all deer - Shift+C
+        if (e.key === 'C' && e.shiftKey) {
+            e.preventDefault();
+            if (this.game.terrainSystem.deerManager) {
+                this.game.terrainSystem.deerManager.calmAllDeer();
+                this.game.uiController.showMessage('All deer calmed down', 2000);
+                this.game.render();
+            }
+            return true;
+        }
+        
+        // NEW: Show deer behavior stats - Shift+B
+        if (e.key === 'B' && e.shiftKey) {
+            e.preventDefault();
+            if (this.game.terrainSystem.deerManager) {
+                const stats = this.game.terrainSystem.deerManager.getDeerBehaviorStats();
+                const message = `Deer Stats: ${stats.totalDeer} total | Avg dist: ${stats.averageDistanceFromPlayer} | W:${stats.states.wandering} A:${stats.states.alert} F:${stats.states.fleeing}`;
+                this.game.uiController.showMessage(message, 4000);
+            }
+            return true;
+        }
+        
+        // NEW: Respawn deer - Shift+R
+        if (e.key === 'R' && e.shiftKey) {
+            e.preventDefault();
+            if (this.game.terrainSystem.deerManager) {
+                this.game.terrainSystem.deerManager.respawnDeer();
+                this.game.uiController.showMessage('Deer respawned in new locations', 2000);
+                this.game.render();
+            }
+            return true;
+        }
+        
+        // Quick terrain configuration
         if (e.key === '1') {
             e.preventDefault();
             this.game.terrainSystem.quickConfigElevation('flat').regenerateWorld();
@@ -274,10 +321,14 @@ class InputHandler {
         // Only process if Ctrl or Cmd is held
         if (!(e.ctrlKey || e.metaKey)) return false;
         
+        // Prevent conflict with terrain controls - check for exact key combinations
         if (e.key === 'z' && !e.shiftKey) {
-            e.preventDefault();
-            this.game.undo();
-            return true;
+            // Only handle if not combined with other special controls
+            if (!['e', 'w', 'm', 's', 'r'].includes(e.key)) {
+                e.preventDefault();
+                this.game.undo();
+                return true;
+            }
         }
         
         // Handle both Ctrl+Y and Ctrl+Shift+Z for redo
@@ -296,7 +347,7 @@ class InputHandler {
             'ArrowDown': { x: 0, y: 1 },
             'ArrowLeft': { x: -1, y: 0 },
             'ArrowRight': { x: 1, y: 0 },
-            // Also support WASD keys
+            // WASD keys - but only if no modifiers are pressed
             'w': { x: 0, y: -1 },
             'W': { x: 0, y: -1 },
             's': { x: 0, y: 1 },
@@ -306,6 +357,12 @@ class InputHandler {
             'd': { x: 1, y: 0 },
             'D': { x: 1, y: 0 }
         };
+        
+        // Only allow movement if no modifier keys are pressed
+        // This prevents conflicts with terrain controls
+        if (e.ctrlKey || e.metaKey || e.altKey || e.shiftKey) {
+            return; // Don't handle movement if modifier keys are pressed
+        }
         
         const movement = movementMap[e.key];
         if (movement) {

@@ -1,14 +1,14 @@
-// === TERRAIN RENDERER MODULE (UPDATED FOR TREE FEATURES) ===
+// === TERRAIN RENDERER MODULE (FIXED VERSION) ===
 // File: terrain-renderer.js
 class TerrainRenderer {
     constructor(terrainTypes, featureTypes = {}) {
         this.terrainTypes = terrainTypes;
-        this.featureTypes = featureTypes; // NEW: Support for features
+        this.featureTypes = featureTypes;
         this.frameCount = 0;
         
         // Character dimensions for pixel-perfect calculation (24px font)
-        this.charWidth = 14.4;  // Doubled from 7.2
-        this.charHeight = 24;   // Doubled from 12
+        this.charWidth = 14.4;
+        this.charHeight = 24;
         
         // Add varied grass color classes to terrain types
         this.setupVariedGrassColors();
@@ -30,26 +30,45 @@ class TerrainRenderer {
     
     /**
      * Gets a consistent grass color variation for a specific tile position
-     * This ensures the same tile always has the same color variation
      */
     getGrassVariation(x, y) {
         // Use a simple hash of the coordinates to pick a consistent color
-        // This ensures each tile always looks the same when you come back to it
         const hash = Math.abs((x * 73856093) ^ (y * 19349663));
         const variationIndex = hash % this.grassVariations.length;
         return this.grassVariations[variationIndex];
     }
     
     /**
-     * Determines the appropriate CSS class for a terrain tile
+     * FIXED: Simplified terrain class determination
      */
     getTerrainClassName(terrain, x, y) {
-        // NEW: If there's a feature (like a tree), use the feature's class instead
+        // If there's a feature (like a tree), use the feature's class
         if (terrain.feature) {
             return `symbol ${terrain.feature.type}`;
         }
         
-        // For plains terrain without features, use varied grass colors
+        // FIXED: Check if this is a deer entity
+        if (terrain.deer) {
+            let className = `symbol deer-entity`;
+            
+            // Add debug visualization if deer debug mode is on
+            if (terrain.deer && typeof window !== 'undefined' && window.game && 
+                window.game.terrainSystem && window.game.terrainSystem.deerManager && 
+                window.game.terrainSystem.deerManager.debugMode) {
+                
+                // This will be handled by the debug overlay system
+                const playerX = window.game.player.x;
+                const playerY = window.game.player.y;
+                
+                if (terrain.deer.canSeePosition && terrain.deer.canSeePosition(playerX, playerY)) {
+                    className += ' deer-vision-player';
+                }
+            }
+            
+            return className;
+        }
+        
+        // For plains terrain, use varied grass colors
         if (terrain.terrain === 'plains') {
             const grassVariation = this.getGrassVariation(x, y);
             return `symbol ${grassVariation}`;
@@ -71,42 +90,24 @@ class TerrainRenderer {
                 let symbol = '░';
                 let className = 'symbol terrain-unknown';
                 
-                // Get terrain information for this tile first
+                // Get terrain information for this tile
                 const terrain = getTerrainFunction(worldX, worldY);
                 
+                // FIXED: Simplified player rendering logic
                 if (worldX === playerX && worldY === playerY) {
-                    // Check if player is under a tree canopy
-                    if (terrain.feature && terrain.feature.type === 'tree_canopy') {
-                        // Player is under tree canopy - show the canopy, not the player
-                        symbol = terrain.symbol;
-                        if (terrain.className.includes('feature-')) {
-                            className = `symbol ${terrain.className}`;
-                        } else {
-                            className = this.getTerrainClassName(terrain, worldX, worldY);
-                        }
-                    } else {
-                        // Player is visible (not under canopy)
-                        symbol = '◊';
-                        className = 'symbol player';
-                    }
+                    // Always show player as player symbol, regardless of what's underneath
+                    symbol = '◊';
+                    className = 'symbol player';
                 } else {
-                    // Use the terrain symbol
-                    symbol = terrain.symbol;
-                    
-                    // Check if terrain already has a feature-specific className
-                    if (terrain.feature && terrain.className.includes('feature-')) {
-                        // Use the feature class directly (don't apply grass variation)
-                        className = `symbol ${terrain.className}`;
-                    } else {
-                        // Get the appropriate CSS class (this is where grass variation happens)
-                        className = this.getTerrainClassName(terrain, worldX, worldY);
-                    }
+                    // Use the terrain/feature/deer symbol
+                    symbol = terrain.symbol || '░';
+                    className = this.getTerrainClassName(terrain, worldX, worldY);
                 }
                 
                 display += `<span class="${className}">${symbol}</span>`;
             }
             
-            // Add newline only if not the last row (prevents extra line at bottom)
+            // Add newline only if not the last row
             if (viewY < viewHeight - 1) {
                 display += '\n';
             }
@@ -121,12 +122,11 @@ class TerrainRenderer {
         
         // Account for any UI elements that reduce available space
         const statusHeight = 50; // Height of status bar
-        const instructionsHeight = 0; // Instructions are overlaid
         
         const availableWidth = rect.width;
         const availableHeight = rect.height - statusHeight;
         
-        // Calculate how many characters fit exactly (will be fewer due to larger font)
+        // Calculate how many characters fit exactly
         const width = Math.floor(availableWidth / this.charWidth);
         const height = Math.floor(availableHeight / this.charHeight);
         
@@ -136,15 +136,15 @@ class TerrainRenderer {
         };
     }
     
-    // Method to test and calibrate character dimensions (24PX)
+    // Method to test and calibrate character dimensions
     calibrateCharacterSize() {
         // Create a test element to measure actual character dimensions
         const testDiv = document.createElement('div');
         testDiv.style.position = 'absolute';
         testDiv.style.top = '-1000px';
         testDiv.style.fontFamily = '"Courier New", monospace';
-        testDiv.style.fontSize = '24px';     // DOUBLE SIZE (was 12px)
-        testDiv.style.lineHeight = '24px';   // DOUBLE SIZE (was 12px)
+        testDiv.style.fontSize = '24px';
+        testDiv.style.lineHeight = '24px';
         testDiv.style.whiteSpace = 'pre';
         testDiv.textContent = '█'.repeat(10); // 10 characters
         
@@ -169,7 +169,7 @@ class TerrainRenderer {
             let row = "";
             for (let x = 0; x < 5; x++) {
                 const variation = this.getGrassVariation(x, y);
-                const number = variation.split('-')[2]; // Extract number from 'terrain-grass-X'
+                const number = variation.split('-')[2];
                 row += number + " ";
             }
             console.log(`Row ${y}: ${row}`);

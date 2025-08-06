@@ -8,7 +8,7 @@ body {
     font-family: Arial, sans-serif;
     background: #222;
     color: white;
-    overflow: hidden; /* Prevent scrollbars */
+    overflow: hidden;
     height: 100vh;
     width: 100vw;
 }
@@ -22,9 +22,9 @@ body {
     background: #000;
     font-family: 'Courier New', monospace;
     font-size: 24px;
-    line-height: 24px; /* CRITICAL: Match font-size exactly */
-    letter-spacing: 0;  /* Remove any letter spacing */
-    word-spacing: 0;    /* Remove any word spacing */
+    line-height: 24px;
+    letter-spacing: 0;
+    word-spacing: 0;
     white-space: pre;
     overflow: hidden;
     
@@ -34,15 +34,10 @@ body {
     image-rendering: crisp-edges;
     text-rendering: optimizeSpeed;
     
-    /* Remove any default spacing */
     border: none;
     outline: none;
-    
-    /* Ensure no subpixel rendering */
     transform: translateZ(0);
     backface-visibility: hidden;
-    
-    /* Critical for removing gaps */
     font-variant-ligatures: none;
     text-decoration: none;
 }
@@ -52,13 +47,11 @@ body {
     font-family: 'Courier New', monospace;
     font-size: 24px;
     line-height: 24px;
-    font-weight: normal; /* Changed from bold to avoid width inconsistencies */
+    font-weight: normal;
     margin: 0;
     padding: 0;
     border: 0;
     vertical-align: baseline;
-    
-    /* Ensure no spacing between characters */
     letter-spacing: 0;
     word-spacing: 0;
 }
@@ -67,56 +60,96 @@ body {
 .player {
     color: #ff6b6b !important;
     text-shadow: 0 0 2px #ff6b6b;
-    font-weight: bold; /* Player can stay bold for visibility */
+    font-weight: bold;
+}
+
+/* REACTIVE: Enhanced deer entity styles with reaction states */
+.deer-entity {
+    color: #daa520 !important; /* Normal goldenrod */
+    text-shadow: 0 0 1px #daa520;
+    font-weight: bold;
+}
+
+/* Fleeing deer are bright gold with pulsing animation */
+.deer-entity.deer-fleeing {
+    color: #ffd700 !important;
+    text-shadow: 0 0 2px #ffd700;
+    animation: deer-panic 0.4s ease-in-out infinite alternate;
+}
+
+/* NEW: Reacting deer (have pending reactions) show subtle glow */
+.deer-entity.deer-reacting {
+    color: #ffaa00 !important;
+    text-shadow: 0 0 3px #ffaa00;
+    animation: deer-reacting 0.2s ease-in-out infinite alternate;
+}
+
+/* Panic animation for fleeing deer */
+@keyframes deer-panic {
+    from { 
+        color: #ffd700;
+        text-shadow: 0 0 2px #ffd700;
+    }
+    to { 
+        color: #ffed4e;
+        text-shadow: 0 0 4px #ffed4e;
+    }
+}
+
+/* Fast pulse for reacting deer */
+@keyframes deer-reacting {
+    from { 
+        color: #ffaa00;
+        text-shadow: 0 0 2px #ffaa00;
+    }
+    to { 
+        color: #ffcc33;
+        text-shadow: 0 0 3px #ffcc33;
+    }
+}
+
+/* Debug mode deer vision */
+.deer-vision {
+    background-color: rgba(218, 165, 32, 0.2) !important;
+}
+
+.deer-vision-player {
+    background-color: rgba(255, 0, 0, 0.3) !important;
 }
 
 /* Terrain colors - with varied grass colors */
-.terrain-grass { color: #00ff00; }       /* Base green for plains - this will be overridden by varied colors */
-.terrain-grass-1 { color: #00e600; }     /* Slightly darker green */
-.terrain-grass-2 { color: #00ff00; }     /* Base bright green */
-.terrain-grass-3 { color: #1aff1a; }     /* Slightly lighter green */
-.terrain-grass-4 { color: #00cc00; }     /* Medium green */
-.terrain-grass-5 { color: #00b300; }     /* Darker green */
-.terrain-grass-6 { color: #33ff33; }     /* Light bright green */
-.terrain-grass-7 { color: #00d900; }     /* Medium-dark green */
-.terrain-grass-8 { color: #26ff26; }     /* Light green with slight variation */
+.terrain-grass { color: #00ff00; }
+.terrain-grass-1 { color: #00e600; }
+.terrain-grass-2 { color: #00ff00; }
+.terrain-grass-3 { color: #1aff1a; }
+.terrain-grass-4 { color: #00cc00; }
+.terrain-grass-5 { color: #00b300; }
+.terrain-grass-6 { color: #33ff33; }
+.terrain-grass-7 { color: #00d900; }
+.terrain-grass-8 { color: #26ff26; }
 
-/* NEW: Tree feature colors */
-.tree_trunk { color: #8b4513; }   /* Brown for tree trunks */
-.tree_canopy { color: #008000; }  /* Medium green for tree canopy */
-.feature-tree-trunk { color: #8b4513; }   /* Brown for tree trunks (backup) */
-.feature-tree-canopy { color: #008000; }  /* Medium green for tree canopy (backup) */
+/* Tree feature colors */
+.tree_trunk { color: #8b4513 !important; }
+.tree_canopy { color: #008000 !important; }
+.feature-tree-trunk { color: #8b4513 !important; }
+.feature-tree-canopy { color: #008000 !important; }
 
-.terrain-tree { color: #008000; }        /* Dark green for trees (legacy) */
-.terrain-hills { color: #a0522d; }       /* Sienna for foothills */
-.terrain-stone { color: #808080; }       /* Gray for mountains */
-.terrain-water { color: #0080ff; }       /* Bright blue for water */
-.terrain-path { color: #daa520; }        /* Goldenrod for trails */
-.terrain-road { color: #8b4513; }        /* Saddle brown for roads */
-.terrain-building { color: #654321; }    /* Dark brown for buildings */
-.terrain-village { color: #ffa500; }     /* Orange for villages */
-.terrain-unknown { color: #404040; }     /* Dark gray for unknown */terrain-grass-4 { color: #00cc00; }     /* Medium green */
-.terrain-grass-5 { color: #00b300; }     /* Darker green */
-.terrain-grass-6 { color: #33ff33; }     /* Light bright green */
-.terrain-grass-7 { color: #00d900; }     /* Medium-dark green */
-.terrain-grass-8 { color: #26ff26; }     /* Light green with slight variation */
-
-.terrain-tree { color: #008000; }        /* Dark green for trees */
-.terrain-hills { color: #a0522d; }       /* Sienna for foothills */
-.terrain-stone { color: #808080; }       /* Gray for mountains */
-.terrain-water { color: #0080ff; }       /* Bright blue for water */
-.terrain-path { color: #daa520; }        /* Goldenrod for trails */
-.terrain-road { color: #8b4513; }        /* Saddle brown for roads */
-.terrain-building { color: #654321; }    /* Dark brown for buildings */
-.terrain-village { color: #ffa500; }     /* Orange for villages */
-.terrain-unknown { color: #404040; }     /* Dark gray for unknown */
-/* REMOVED: .terrain-gold class for treasure */
+/* Other terrain types */
+.terrain-tree { color: #008000; }
+.terrain-hills { color: #a0522d; }
+.terrain-stone { color: #808080; }
+.terrain-water { color: #0080ff; }
+.terrain-path { color: #daa520; }
+.terrain-road { color: #8b4513; }
+.terrain-building { color: #654321; }
+.terrain-village { color: #ffa500; }
+.terrain-unknown { color: #404040; }
 
 /* Fog of War colors */
-.terrain-fog { color: #202020; }         /* Very dark gray for unexplored */
-.terrain-explored { opacity: 0.6; }      /* Dimmed for previously explored areas */
+.terrain-fog { color: #202020; }
+.terrain-explored { opacity: 0.6; }
 
-/* Status bar - overlay at bottom */
+/* Status bar */
 .status {
     position: fixed;
     bottom: 0;
@@ -147,6 +180,11 @@ body {
     color: #f44;
 }
 
+.facing-info {
+    background: rgba(64, 64, 64, 0.8);
+    color: #ccc;
+}
+
 .instructions {
     position: fixed;
     top: 10px;
@@ -158,11 +196,11 @@ body {
     background: rgba(0, 0, 0, 0.5);
     padding: 5px 10px;
     border-radius: 3px;
+    max-width: 600px;
 }
 
-/* Hide instructions after a few seconds */
 .instructions.fade-out {
-    animation: fadeOut 2s ease-in-out 3s forwards;
+    animation: fadeOut 2s ease-in-out 5s forwards; /* Increased delay for more complex instructions */
 }
 
 @keyframes fadeOut {
@@ -170,4 +208,25 @@ body {
         opacity: 0;
         pointer-events: none;
     }
+}
+
+/* NEW: Additional visual feedback for reactive system */
+.reactive-indicator {
+    position: fixed;
+    top: 50px;
+    right: 10px;
+    background: rgba(255, 170, 0, 0.8);
+    color: black;
+    padding: 5px 10px;
+    border-radius: 3px;
+    font-size: 12px;
+    font-weight: bold;
+    z-index: 1001;
+    animation: fade-in-out 2s ease-in-out;
+}
+
+@keyframes fade-in-out {
+    0% { opacity: 0; transform: translateX(20px); }
+    50% { opacity: 1; transform: translateX(0); }
+    100% { opacity: 0; transform: translateX(-20px); }
 }
