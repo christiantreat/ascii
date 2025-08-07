@@ -146,3 +146,8 @@ class UIController {
         this.showMessage(message, 4000);
     }
 }
+
+// Make UIController globally available
+if (typeof window !== 'undefined') {
+    window.UIController = UIController;
+}

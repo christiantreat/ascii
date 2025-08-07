@@ -206,6 +206,270 @@ body {
     opacity: 0.6 !important;
 }
 
+
+/* Basic water terrain - keep existing */
+.terrain-water { 
+    color: #0080ff; 
+}
+
+/* === FLOWING RIVER STYLES === */
+
+/* Basic flowing river sections */
+.terrain-water.river-horizontal,
+.terrain-water.river-vertical {
+    color: #4da6ff !important;  /* Bright flowing blue */
+    text-shadow: 0 0 2px #0080ff;
+    animation: river-flow 3s ease-in-out infinite;
+}
+
+/* River bends and curves */
+.terrain-water.river-northeast,
+.terrain-water.river-northwest,
+.terrain-water.river-southeast,
+.terrain-water.river-southwest {
+    color: #66b3ff !important;  /* Slightly lighter for curves */
+    text-shadow: 0 0 2px #1a8cff;
+    animation: river-bend 4s ease-in-out infinite;
+}
+
+/* River junctions and confluences */
+.terrain-water.river-junction,
+.terrain-water.river-confluence {
+    color: #3399ff !important;  /* Vibrant blue for confluences */
+    text-shadow: 0 0 3px #0066cc;
+    animation: river-confluence 2.5s ease-in-out infinite;
+}
+
+/* Special river features */
+.terrain-water.river-source {
+    color: #00ccff !important;  /* Bright cyan for spring sources */
+    text-shadow: 0 0 4px #00aadd;
+    animation: spring-bubble 1.5s ease-in-out infinite;
+}
+
+.terrain-water.river-mouth {
+    color: #0099dd !important;  /* Deep blue for river mouths */
+    text-shadow: 0 0 2px #006699;
+    animation: river-mouth 3.5s ease-in-out infinite;
+}
+
+.terrain-water.river-rapids {
+    color: #ffffff !important;  /* White for rapids/fast flow */
+    text-shadow: 0 0 3px #4da6ff;
+    animation: rapids 0.8s ease-in-out infinite;
+}
+
+/* === RIVER ANIMATIONS === */
+
+/* Basic flowing animation - gentle pulse */
+@keyframes river-flow {
+    0% { 
+        color: #4da6ff;
+        text-shadow: 0 0 2px #0080ff;
+    }
+    50% { 
+        color: #66b3ff;
+        text-shadow: 0 0 3px #1a8cff;
+    }
+    100% { 
+        color: #4da6ff;
+        text-shadow: 0 0 2px #0080ff;
+    }
+}
+
+/* River bend animation - slightly different timing */
+@keyframes river-bend {
+    0% { 
+        color: #66b3ff;
+        text-shadow: 0 0 2px #1a8cff;
+    }
+    33% { 
+        color: #4da6ff;
+        text-shadow: 0 0 3px #0080ff;
+    }
+    66% { 
+        color: #80ccff;
+        text-shadow: 0 0 2px #3399ff;
+    }
+    100% { 
+        color: #66b3ff;
+        text-shadow: 0 0 2px #1a8cff;
+    }
+}
+
+/* Confluence animation - more dramatic pulsing */
+@keyframes river-confluence {
+    0% { 
+        color: #3399ff;
+        text-shadow: 0 0 3px #0066cc;
+        transform: scale(1);
+    }
+    50% { 
+        color: #66b3ff;
+        text-shadow: 0 0 5px #1a8cff;
+        transform: scale(1.05);
+    }
+    100% { 
+        color: #3399ff;
+        text-shadow: 0 0 3px #0066cc;
+        transform: scale(1);
+    }
+}
+
+/* Spring source animation - bubbling effect */
+@keyframes spring-bubble {
+    0% { 
+        color: #00ccff;
+        text-shadow: 0 0 4px #00aadd;
+        transform: scale(1);
+    }
+    25% { 
+        color: #33ddff;
+        text-shadow: 0 0 6px #00ccee;
+        transform: scale(1.1);
+    }
+    50% { 
+        color: #66eeff;
+        text-shadow: 0 0 8px #33ddff;
+        transform: scale(1.15);
+    }
+    75% { 
+        color: #33ddff;
+        text-shadow: 0 0 6px #00ccee;
+        transform: scale(1.1);
+    }
+    100% { 
+        color: #00ccff;
+        text-shadow: 0 0 4px #00aadd;
+        transform: scale(1);
+    }
+}
+
+/* River mouth animation - gentle flowing into larger body */
+@keyframes river-mouth {
+    0% { 
+        color: #0099dd;
+        text-shadow: 0 0 2px #006699;
+    }
+    50% { 
+        color: #1aa3e6;
+        text-shadow: 0 0 4px #0077bb;
+    }
+    100% { 
+        color: #0099dd;
+        text-shadow: 0 0 2px #006699;
+    }
+}
+
+/* Rapids animation - fast, chaotic movement */
+@keyframes rapids {
+    0% { 
+        color: #ffffff;
+        text-shadow: 0 0 3px #4da6ff;
+        transform: translateY(0);
+    }
+    25% { 
+        color: #e6f7ff;
+        text-shadow: 0 0 5px #66b3ff;
+        transform: translateY(-1px);
+    }
+    50% { 
+        color: #ccf2ff;
+        text-shadow: 0 0 4px #80ccff;
+        transform: translateY(0);
+    }
+    75% { 
+        color: #e6f7ff;
+        text-shadow: 0 0 5px #66b3ff;
+        transform: translateY(1px);
+    }
+    100% { 
+        color: #ffffff;
+        text-shadow: 0 0 3px #4da6ff;
+        transform: translateY(0);
+    }
+}
+
+/* === FOG OF WAR SUPPORT FOR RIVERS === */
+
+/* Dimmed flowing rivers when explored but not visible */
+.terrain-water.terrain-explored {
+    opacity: 0.6 !important;
+    animation-duration: 6s !important; /* Slower animation when dimmed */
+}
+
+/* Preserve river animations even when explored */
+.terrain-water.river-horizontal.terrain-explored,
+.terrain-water.river-vertical.terrain-explored {
+    animation: river-flow 6s ease-in-out infinite;
+}
+
+.terrain-water.river-confluence.terrain-explored {
+    animation: river-confluence 5s ease-in-out infinite;
+}
+
+.terrain-water.river-source.terrain-explored {
+    animation: spring-bubble 3s ease-in-out infinite;
+}
+
+/* === LAKE STYLES === */
+
+/* Enhanced lake appearance */
+.terrain-water.lake {
+    color: #0066cc !important;
+    text-shadow: 0 0 2px #004499;
+    animation: lake-ripple 8s ease-in-out infinite;
+}
+
+/* Lake ripple animation - very subtle */
+@keyframes lake-ripple {
+    0% { 
+        color: #0066cc;
+        text-shadow: 0 0 2px #004499;
+    }
+    50% { 
+        color: #1a77dd;
+        text-shadow: 0 0 3px #0055aa;
+    }
+    100% { 
+        color: #0066cc;
+        text-shadow: 0 0 2px #004499;
+    }
+}
+
+/* === RESPONSIVE RIVER RENDERING === */
+
+/* Ensure rivers look good at different screen sizes */
+@media (max-width: 768px) {
+    .terrain-water {
+        text-shadow: 0 0 1px #0080ff; /* Smaller glow on mobile */
+    }
+    
+    .terrain-water.river-source {
+        animation-duration: 2s; /* Faster on mobile for better visibility */
+    }
+    
+    .terrain-water.rapids {
+        animation-duration: 1s;
+    }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+    .terrain-water {
+        color: #00ffff !important;
+        text-shadow: none !important;
+        animation: none !important;
+    }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+    .terrain-water {
+        animation: none !important;
+    }
+}
+
 /* Status bar */
 .status {
     position: fixed;

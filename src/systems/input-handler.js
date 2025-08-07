@@ -1,6 +1,6 @@
-// === COMPLETE UPDATED INPUT HANDLER WITH GEOLOGY ===
+// === UPDATED INPUT HANDLER WITH MENU SUPPORT ===
 // File: src/systems/input-handler.js
-// COMPLETE REPLACEMENT with geology controls added
+// COMPLETE REPLACEMENT with menu system integration
 
 class InputHandler {
     constructor(game) {
@@ -10,18 +10,47 @@ class InputHandler {
     
     setupKeyboardInput() {
         document.addEventListener('keydown', (e) => {
+            // NEW: Check if menu is visible and handle menu input first
+            if (this.game.menuSystem.isMenuVisible()) {
+                if (this.handleMenuInput(e)) {
+                    return; // Menu handled the input, don't process further
+                }
+            }
+            
             // Handle special keys first
             if (this.handleSpecialInput(e)) return;
             
             // Handle undo/redo (higher priority)
             if (this.handleUndoRedoInput(e)) return;
             
-            // Then handle movement
-            this.handleMovementInput(e);
+            // Then handle movement (only if menu is not visible)
+            if (!this.game.menuSystem.isMenuVisible()) {
+                this.handleMovementInput(e);
+            }
         });
     }
     
+    // NEW: Menu input handling
+    handleMenuInput(e) {
+        // Let the menu system handle the input
+        const handled = this.game.menuSystem.handleMenuInput(e.key);
+        if (handled) {
+            e.preventDefault();
+            this.game.render(); // Re-render to show menu changes
+            return true;
+        }
+        return false;
+    }
+    
     handleSpecialInput(e) {
+        // NEW: Menu toggle key
+        if (e.key === 'm' || e.key === 'M') {
+            e.preventDefault();
+            this.game.menuSystem.handleMenuKey();
+            this.game.render();
+            return true;
+        }
+        
         // Fog of War controls
         if (e.key === 'f' || e.key === 'F') {
             e.preventDefault();
@@ -246,7 +275,7 @@ class InputHandler {
             return true;
         }
         
-        // === NEW GEOLOGICAL TERRAIN PRESETS ===
+        // === GEOLOGICAL TERRAIN PRESETS ===
         
         if (e.key === '7') {
             e.preventDefault();
@@ -442,4 +471,9 @@ class InputHandler {
             this.game.executeCommand('move', movement);
         }
     }
+}
+
+// Make InputHandler globally available
+if (typeof window !== 'undefined') {
+    window.InputHandler = InputHandler;
 }

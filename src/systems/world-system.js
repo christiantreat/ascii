@@ -1,15 +1,19 @@
-// === WORLD SYSTEM (TERRAIN GENERATION) ===
+// === UPDATED WORLD SYSTEM USING CENTRALIZED CONFIG ===
 // File: src/systems/world-system.js
-// Handles all world generation, terrain classification, and basic terrain queries
+// COMPLETE REPLACEMENT - Now uses centralized configuration
 
 class WorldSystem {
     constructor() {
-        // World boundaries
+        // Get configuration from centralized config
+        this.config = window.TERRAIN_CONFIG;
+        
+        // Get world boundaries from config
+        const worldConfig = this.config.getWorldConfig();
         this.worldBounds = {
-            minX: -100,
-            maxX: 100,  
-            minY: -100,
-            maxY: 100
+            minX: worldConfig.minX,
+            maxX: worldConfig.maxX,
+            minY: worldConfig.minY,
+            maxY: worldConfig.maxY
         };
         
         // Cache for generated cells
@@ -21,36 +25,58 @@ class WorldSystem {
     }
     
     initialize() {
-        console.log("Initializing world system...");
+        console.log("Initializing world system with centralized configuration...");
         
         try {
-            // Create world generator
+            const worldConfig = this.config.getWorldConfig();
+            
+            // Create world generator with config
             this.worldGenerator = new SimpleWorldGenerator({
                 centerX: 0,
                 centerY: 0,
-                regionSize: 200,
-                seed: Math.floor(Math.random() * 10000)
+                regionSize: worldConfig.regionSize,
+                seed: worldConfig.defaultSeed
             });
+            
+            // Configure the world generator with all our settings
+            this.configureWorldGenerator();
             
             // Generate the world
             this.worldGenerator.generateWorld(0, 0);
             
-            // Create terrain classifier - FIXED: Pass the correct world generator
+            // Create terrain classifier
             this.classifier = new SimpleTerrainClassifier(this.worldGenerator);
             
-            console.log("World system initialized successfully!");
+            console.log("World system initialized successfully with configuration!");
         } catch (error) {
             console.error("Error initializing world system:", error);
             throw error;
         }
     }
     
+    configureWorldGenerator() {
+        // Configure geology
+        const geologyConfig = this.config.getGeologyConfig();
+        this.worldGenerator.configureGeology(geologyConfig);
+        
+        // Configure elevation
+        const elevationConfig = this.config.getElevationConfig();
+        this.worldGenerator.configureElevation(elevationConfig);
+        
+        // Configure hydrology
+        const hydrologyConfig = this.config.getHydrologyConfig();
+        this.worldGenerator.configureHydrology(hydrologyConfig);
+        
+        console.log("World generator configured with all settings from centralized config");
+    }
+    
     getTerrainAt(x, y) {
         if (!this.isValidPosition(x, y)) {
+            const terrainTypes = this.config.getTerrainTypes();
             return {
-                symbol: '░',
-                className: 'terrain-unknown',
-                name: 'Unknown',
+                symbol: terrainTypes.unknown.symbol,
+                className: terrainTypes.unknown.className,
+                name: terrainTypes.unknown.name,
                 terrain: 'unknown',
                 discovered: false,
                 elevation: 0.2
@@ -64,11 +90,13 @@ class WorldSystem {
             }
             
             const cell = this.world.get(key);
+            const terrainTypes = this.config.getTerrainTypes();
+            const terrainConfig = terrainTypes[cell.terrain] || terrainTypes.unknown;
             
             return {
-                symbol: this.getTerrainSymbol(cell.terrain),
-                className: this.getTerrainClassName(cell.terrain),
-                name: this.getTerrainName(cell.terrain),
+                symbol: terrainConfig.symbol,
+                className: terrainConfig.className,
+                name: terrainConfig.name,
                 terrain: cell.terrain,
                 discovered: cell.discovered,
                 elevation: cell.elevation,
@@ -76,10 +104,11 @@ class WorldSystem {
             };
         } catch (error) {
             console.warn(`Error getting terrain at (${x}, ${y}):`, error);
+            const terrainTypes = this.config.getTerrainTypes();
             return {
-                symbol: '░',
-                className: 'terrain-unknown',
-                name: 'Unknown',
+                symbol: terrainTypes.unknown.symbol,
+                className: terrainTypes.unknown.className,
+                name: terrainTypes.unknown.name,
                 terrain: 'unknown',
                 discovered: false,
                 elevation: 0.2
@@ -91,7 +120,7 @@ class WorldSystem {
         try {
             const key = this.getWorldKey(x, y);
             
-            // FIXED: Use classifier properly
+            // Use classifier to determine terrain type
             const terrainType = this.classifier ? this.classifier.classifyTerrain(x, y) : 'plains';
             const elevation = this.worldGenerator ? this.worldGenerator.getElevationAt(x, y) : 0.2;
             
@@ -134,49 +163,19 @@ class WorldSystem {
         }
     }
     
-isTerrainWalkable(terrainType) {
-    const unwalkableTerrains = ['lake', 'river']; // Water blocks movement
-    const slowTerrains = ['rocks', 'boulders']; // Rocky terrain is harder to traverse
-    
-    // For now, all rocky terrain is walkable but could be made slower
-    return !unwalkableTerrains.includes(terrainType);
-}
-    
-    // Terrain type mapping methods
-    getTerrainSymbol(terrainType) {
-        const symbols = {
-            plains: '▓',
-            foothills: '▒',
-            river: '~',
-            lake: '▀',
-            unknown: '░'
-        };
-        return symbols[terrainType] || '░';
+    isTerrainWalkable(terrainType) {
+        const terrainTypes = this.config.getTerrainTypes();
+        const terrainConfig = terrainTypes[terrainType];
+        
+        if (terrainConfig) {
+            return terrainConfig.walkable;
+        }
+        
+        // Fallback for unknown terrain types
+        return terrainType !== 'lake' && terrainType !== 'river';
     }
     
-    getTerrainClassName(terrainType) {
-        const classNames = {
-            plains: 'terrain-grass',
-            foothills: 'terrain-hills',
-            river: 'terrain-water',
-            lake: 'terrain-water',
-            unknown: 'terrain-unknown'
-        };
-        return classNames[terrainType] || 'terrain-unknown';
-    }
-    
-    getTerrainName(terrainType) {
-        const names = {
-            plains: 'Plains',
-            foothills: 'Foothills',
-            river: 'River',
-            lake: 'Lake',
-            unknown: 'Unknown'
-        };
-        return names[terrainType] || 'Unknown';
-    }
-    
-    // World boundaries and validation
+    // World boundaries and validation using config
     isValidPosition(x, y) {
         return x >= this.worldBounds.minX && x <= this.worldBounds.maxX &&
                y >= this.worldBounds.minY && y <= this.worldBounds.maxY;
@@ -188,6 +187,12 @@ isTerrainWalkable(terrainType) {
     
     setWorldBounds(minX, maxX, minY, maxY) {
         this.worldBounds = { minX, maxX, minY, maxY };
+        
+        // Update the config as well
+        this.config.config.world.minX = minX;
+        this.config.config.world.maxX = maxX;
+        this.config.config.world.minY = minY;
+        this.config.config.world.maxY = maxY;
     }
     
     isAtWorldBoundary(x, y) {
@@ -195,13 +200,15 @@ isTerrainWalkable(terrainType) {
                y <= this.worldBounds.minY || y >= this.worldBounds.maxY;
     }
     
-    // World generation controls
+    // World generation controls using presets from config
     regenerateWorld(centerX = 0, centerY = 0) {
         try {
-            console.log("Regenerating world system...");
+            console.log("Regenerating world system with configuration...");
             this.world.clear();
             
             if (this.worldGenerator) {
+                // Reconfigure before regenerating
+                this.configureWorldGenerator();
                 this.worldGenerator.generateWorld(centerX, centerY);
             }
             
@@ -213,8 +220,20 @@ isTerrainWalkable(terrainType) {
     
     regenerateModule(moduleName) {
         try {
-            console.log(`Regenerating ${moduleName} module in world system...`);
+            console.log(`Regenerating ${moduleName} module with configuration...`);
             if (this.worldGenerator) {
+                // Reconfigure the specific module before regenerating
+                switch (moduleName) {
+                    case 'geology':
+                        this.worldGenerator.configureGeology(this.config.getGeologyConfig());
+                        break;
+                    case 'elevation':
+                        this.worldGenerator.configureElevation(this.config.getElevationConfig());
+                        break;
+                    case 'hydrology':
+                        this.worldGenerator.configureHydrology(this.config.getHydrologyConfig());
+                        break;
+                }
                 this.worldGenerator.regenerateModule(moduleName);
             }
             this.world.clear();
@@ -226,35 +245,11 @@ isTerrainWalkable(terrainType) {
     
     quickConfigElevation(method) {
         try {
-            const configs = {
-                'flat': { 
-                    hillCount: 2,
-                    minHillRadius: 15,
-                    maxHillRadius: 25,
-                    minHillHeight: 0.18,
-                    maxHillHeight: 0.28,
-                    hillSpacing: 80
-                },
-                'rolling': { 
-                    hillCount: 6,
-                    minHillRadius: 20,
-                    maxHillRadius: 35,
-                    minHillHeight: 0.25,
-                    maxHillHeight: 0.45,
-                    hillSpacing: 45
-                },
-                'hilly': { 
-                    hillCount: 10,
-                    minHillRadius: 18,
-                    maxHillRadius: 32,
-                    minHillHeight: 0.3,
-                    maxHillHeight: 0.55,
-                    hillSpacing: 30
-                }
-            };
-            
-            if (configs[method] && this.worldGenerator) {
-                this.worldGenerator.configureElevation(configs[method]);
+            const preset = this.config.getElevationPreset(method);
+            if (preset && this.worldGenerator) {
+                // Apply the preset to elevation configuration
+                const elevationConfig = { ...this.config.getElevationConfig(), ...preset };
+                this.worldGenerator.configureElevation(elevationConfig);
             }
         } catch (error) {
             console.error(`Error configuring elevation (${method}):`, error);
@@ -264,17 +259,32 @@ isTerrainWalkable(terrainType) {
     
     quickConfigWater(level) {
         try {
-            const configs = {
-                'dry': { riverCount: 1, lakeCount: 2 },
-                'normal': { riverCount: 3, lakeCount: 4 },
-                'wet': { riverCount: 5, lakeCount: 6 }
-            };
-            
-            if (configs[level] && this.worldGenerator) {
-                this.worldGenerator.configureHydrology(configs[level]);
+            const preset = this.config.getWaterPreset(level);
+            if (preset && this.worldGenerator) {
+                // Apply the preset to hydrology configuration
+                const hydrologyConfig = { ...this.config.getHydrologyConfig(), ...preset };
+                this.worldGenerator.configurehydrology(hydrologyConfig);
             }
         } catch (error) {
             console.error(`Error configuring water (${level}):`, error);
+        }
+        return this;
+    }
+    
+    // Apply geological presets
+    applyGeologicalPreset(presetName) {
+        try {
+            const preset = this.config.getGeologicalPreset(presetName);
+            if (preset && this.worldGenerator) {
+                // Create a geology configuration with the preset
+                const geologyConfig = {
+                    ...this.config.getGeologyConfig(),
+                    formations: preset.formations
+                };
+                this.worldGenerator.configureGeology(geologyConfig);
+            }
+        } catch (error) {
+            console.error(`Error applying geological preset (${presetName}):`, error);
         }
         return this;
     }
@@ -289,9 +299,13 @@ isTerrainWalkable(terrainType) {
             const bounds = this.getWorldBounds();
             const stats = {};
             let totalSamples = 0;
+            const perfConfig = this.config.getPerformanceConfig();
             
-            for (let x = bounds.minX; x <= bounds.maxX; x += 8) {
-                for (let y = bounds.minY; y <= bounds.maxY; y += 8) {
+            // Use performance config to determine sampling rate
+            const sampleStep = 8; // Could be configurable
+            
+            for (let x = bounds.minX; x <= bounds.maxX; x += sampleStep) {
+                for (let y = bounds.minY; y <= bounds.maxY; y += sampleStep) {
                     const terrain = this.classifier ? this.classifier.classifyTerrain(x, y) : 'plains';
                     stats[terrain] = (stats[terrain] || 0) + 1;
                     totalSamples++;
@@ -306,14 +320,16 @@ isTerrainWalkable(terrainType) {
             return {
                 counts: stats,
                 percentages: percentages,
-                totalSamples: totalSamples
+                totalSamples: totalSamples,
+                configUsed: 'centralized'
             };
         } catch (error) {
             console.error("Error calculating terrain statistics:", error);
             return {
                 counts: { plains: 1 },
                 percentages: { plains: "100.0" },
-                totalSamples: 1
+                totalSamples: 1,
+                configUsed: 'fallback'
             };
         }
     }
@@ -343,12 +359,50 @@ isTerrainWalkable(terrainType) {
             return {
                 hills: elevationData?.hills?.length || 0,
                 rivers: hydrologyData?.rivers?.length || 0,
-                lakes: hydrologyData?.lakes?.length || 0
+                lakes: hydrologyData?.lakes?.length || 0,
+                configurationUsed: 'centralized'
             };
         } catch (error) {
             console.warn("Error getting world stats:", error);
-            return { hills: 0, rivers: 0, lakes: 0 };
+            return { hills: 0, rivers: 0, lakes: 0, configurationUsed: 'fallback' };
         }
+    }
+    
+    // Configuration access
+    getConfig() {
+        return this.config;
+    }
+    
+    updateConfiguration(section, newValues) {
+        switch (section) {
+            case 'world':
+                // Update world boundaries
+                if (newValues.minX !== undefined) this.worldBounds.minX = newValues.minX;
+                if (newValues.maxX !== undefined) this.worldBounds.maxX = newValues.maxX;
+                if (newValues.minY !== undefined) this.worldBounds.minY = newValues.minY;
+                if (newValues.maxY !== undefined) this.worldBounds.maxY = newValues.maxY;
+                break;
+            case 'geology':
+                this.config.updateGeology(newValues);
+                if (this.worldGenerator) {
+                    this.worldGenerator.configureGeology(this.config.getGeologyConfig());
+                }
+                break;
+            case 'elevation':
+                this.config.updateElevation(newValues);
+                if (this.worldGenerator) {
+                    this.worldGenerator.configureElevation(this.config.getElevationConfig());
+                }
+                break;
+            case 'hydrology':
+                this.config.updateHydrology(newValues);
+                if (this.worldGenerator) {
+                    this.worldGenerator.configureHydrology(this.config.getHydrologyConfig());
+                }
+                break;
+        }
+        
+        return this;
     }
     
     // Utility methods
@@ -361,5 +415,20 @@ isTerrainWalkable(terrainType) {
         if (this.world.has(key)) {
             this.world.get(key).discovered = true;
         }
+    }
+    
+    // Configuration validation
+    validateConfiguration() {
+        return this.config.validateConfig();
+    }
+    
+    // Export current world state with configuration
+    exportWorldState() {
+        return {
+            configuration: this.config.exportConfig(),
+            worldBounds: this.worldBounds,
+            generatedCells: Array.from(this.world.entries()),
+            timestamp: new Date().toISOString()
+        };
     }
 }

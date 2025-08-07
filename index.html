@@ -11,13 +11,12 @@
     
     <div class="instructions fade-out">
     <strong>🎮 REACTIVE DEER AI GAME - GEOLOGICAL TERRAIN SYSTEM</strong><br>
-    <strong>Movement:</strong> Arrow Keys/WASD • <strong>Fog:</strong> F • <strong>Vision:</strong> +/- • <strong>Exploration:</strong> [/]<br>
+    <strong>Movement:</strong> Arrow Keys/WASD • <strong>Menu:</strong> M key • <strong>Fog:</strong> F • <strong>Vision:</strong> +/-<br>
     <strong>🦌 DEER REACT INSTANTLY:</strong> Watch deer flee the moment you move toward them!<br>
-    <strong>Debug Controls:</strong> Shift+D (debug) • Shift+S (scare all) • Shift+C (calm) • Shift+B (stats)<br>
+    <strong>📋 NEW MENU SYSTEM:</strong> Press M to open the game menu with all controls organized!<br>
     <strong>🏔️ GEOLOGICAL TERRAIN:</strong> 7 (mountains) • 8 (hills) • 9 (plains) • 0 (volcanic)<br>
-    <strong>Classic Terrain:</strong> 1-3 (elevation) • <strong>Water:</strong> 4-6 (dry/normal/wet)<br>
-    <strong>Analysis:</strong> T (terrain+geology) • G (geology details) • <strong>Regenerate:</strong> Ctrl+R<br>
-    <em>Now with realistic geology that shapes mountains, valleys, and rivers!</em>
+    <strong>Quick Controls:</strong> T (terrain+geology) • G (geology details) • Ctrl+R (regenerate)<br>
+    <em>Now with a pauseable menu system - game freezes while menu is open!</em>
     </div>
         
     <div class="status">
@@ -55,7 +54,8 @@
             fogSystem: false,
             treeSystem: false,
             deerSystem: false,
-            terrainSystem: false
+            terrainSystem: false,
+            menuSystem: false
         };
 
         function updateLoadingStatus(moduleName) {
@@ -80,6 +80,8 @@
     </script>
 
     <!-- STEP 1: Core command system (no dependencies) -->
+    <!-- NEW: Load configuration FIRST before any other systems -->
+    <script src="src/config/terrain-config.js"></script>
     <script src="src/commands/command-base.js"></script>
     <script src="src/commands/move-command.js"></script>
     <script src="src/systems/command-history.js"></script>
@@ -87,7 +89,6 @@
     <!-- STEP 2: Terrain module foundation (must load before world generators) -->
     <script src="src/systems/terrain-modules/terrain-module-base.js"></script>
     <script src="src/systems/terrain-modules/geology-module.js"></script>
-    <script src="src/systems/terrain-modules/elevation-module.js"></script>    
     <script src="src/systems/terrain-modules/elevation-module.js"></script>
     <script src="src/systems/terrain-modules/hydrology-module.js"></script>
     <script src="src/systems/terrain-modules/vegetation-module.js"></script>
@@ -106,10 +107,11 @@
     <script src="src/entities/deer.js"></script>
     <script src="src/systems/deer-system.js" onload="updateLoadingStatus('deerSystem')"></script>
     
-    <!-- STEP 6: Rendering and UI -->
+    <!-- STEP 6: Rendering and UI (must load before game engine) -->
     <script src="src/systems/terrain-renderer.js"></script>
     <script src="src/systems/camera-system.js"></script>
     <script src="src/ui/ui-controller.js"></script>
+    <script src="src/ui/menu-system.js" onload="updateLoadingStatus('menuSystem')"></script>
     <script src="src/systems/input-handler.js"></script>
     
     <!-- STEP 7: Main terrain system coordinator (loads after all subsystems) -->
@@ -118,5 +120,65 @@
     <!-- STEP 8: Main game engine (loads last - depends on everything) -->
     <script src="src/main.js"></script>
     <script src="src/game-engine.js"></script>
+    
+    <!-- Debug: Check class availability -->
+    <script>
+        // Test that all required classes are available before game starts
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log("Checking class availability...");
+            
+            // Check the classes that should be globally available
+            const globalClasses = {
+                'TERRAIN_CONFIG': window.TERRAIN_CONFIG,
+                'MenuSystem': window.MenuSystem,
+                'TerrainSystem': window.TerrainSystem,
+                'GameEngine': window.GameEngine
+            };
+            
+            // Check classes that might be defined but not global
+            const definedClasses = {
+                'UIController': typeof UIController !== 'undefined',
+                'InputHandler': typeof InputHandler !== 'undefined',
+                'DeerSystem': typeof DeerSystem !== 'undefined',
+                'TreeSystem': typeof TreeSystem !== 'undefined',
+                'WorldSystem': typeof WorldSystem !== 'undefined',
+                'FogOfWarSystem': typeof FogOfWarSystem !== 'undefined'
+            };
+            
+            console.log("Global classes:", globalClasses);
+            console.log("Defined classes:", definedClasses);
+            
+            // Check what's missing
+            const missingGlobal = [];
+            const missingDefined = [];
+            
+            Object.entries(globalClasses).forEach(([name, value]) => {
+                if (!value) missingGlobal.push(name);
+            });
+            
+            Object.entries(definedClasses).forEach(([name, isDefined]) => {
+                if (!isDefined) missingDefined.push(name);
+            });
+            
+            if (missingGlobal.length > 0) {
+                console.error("❌ Missing global classes:", missingGlobal);
+            }
+            
+            if (missingDefined.length > 0) {
+                console.error("❌ Missing defined classes:", missingDefined);
+            }
+            
+            if (missingGlobal.length === 0 && missingDefined.length === 0) {
+                console.log("✅ All required classes loaded successfully");
+            }
+            
+            // Special check for MenuSystem availability to GameEngine
+            if (typeof window.MenuSystem !== 'undefined') {
+                console.log("✅ MenuSystem is globally available for GameEngine");
+            } else {
+                console.error("❌ MenuSystem is NOT globally available - this will cause the error");
+            }
+        });
+    </script>
 </body>
 </html>

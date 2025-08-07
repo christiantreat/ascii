@@ -1,6 +1,6 @@
-// === FIXED TERRAIN SYSTEM (MAIN CONTROLLER) ===
+// === CORRECTED TERRAIN SYSTEM (MAIN CONTROLLER) ===
 // File: src/systems/terrain-system.js
-// COMPLETE REPLACEMENT - Fixed fog of war application order
+// COMPLETE REPLACEMENT - Fixed system references
 
 class TerrainSystem {
     constructor() {
@@ -20,23 +20,23 @@ class TerrainSystem {
     }
     
     // Define terrain and feature types
-getTerrainTypes() {
-    return {
-        plains: { symbol: '▓', className: 'terrain-grass', name: 'Plains' },
-        foothills: { symbol: '▒', className: 'terrain-hills', name: 'Foothills' },
-        river: { symbol: '~', className: 'terrain-water', name: 'River' },
-        lake: { symbol: '▀', className: 'terrain-water', name: 'Lake' },
-        
-        // NEW: Rocky terrain types
-        rocks: { symbol: '▓', className: 'terrain-rocks', name: 'Rocky Ground' },
-        boulders: { symbol: '▒', className: 'terrain-boulders', name: 'Boulder Field' },
-        stone: { symbol: '░', className: 'terrain-stone', name: 'Stone Outcrops' },
-        
-        unknown: { symbol: '░', className: 'terrain-unknown', name: 'Unknown' },
-        fog: { symbol: '▓', className: 'terrain-fog', name: 'Unknown' },
-        explored: { symbol: '░', className: 'terrain-explored', name: 'Explored' }
-    };
-}
+    getTerrainTypes() {
+        return {
+            plains: { symbol: '▓', className: 'terrain-grass', name: 'Plains' },
+            foothills: { symbol: '▒', className: 'terrain-hills', name: 'Foothills' },
+            river: { symbol: '~', className: 'terrain-water', name: 'River' },
+            lake: { symbol: '▀', className: 'terrain-water', name: 'Lake' },
+            
+            // NEW: Rocky terrain types
+            rocks: { symbol: '▓', className: 'terrain-rocks', name: 'Rocky Ground' },
+            boulders: { symbol: '▒', className: 'terrain-boulders', name: 'Boulder Field' },
+            stone: { symbol: '░', className: 'terrain-stone', name: 'Stone Outcrops' },
+            
+            unknown: { symbol: '░', className: 'terrain-unknown', name: 'Unknown' },
+            fog: { symbol: '▓', className: 'terrain-fog', name: 'Unknown' },
+            explored: { symbol: '░', className: 'terrain-explored', name: 'Explored' }
+        };
+    }
     
     getFeatureTypes() {
         return {
@@ -318,4 +318,9 @@ getTerrainTypes() {
     getViewDimensions(gameArea) {
         return this.renderer.getViewDimensions(gameArea);
     }
+}
+
+// Make TerrainSystem globally available
+if (typeof window !== 'undefined') {
+    window.TerrainSystem = TerrainSystem;
 }

@@ -1,6 +1,6 @@
-// === FIXED TERRAIN RENDERER MODULE ===
+// === UPDATED TERRAIN RENDERER WITH RIVER STYLING ===
 // File: src/systems/terrain-renderer.js
-// COMPLETE REPLACEMENT - Fixed grass variation handling in fog of war
+// COMPLETE REPLACEMENT - Now supports flowing river CSS classes
 
 class TerrainRenderer {
     constructor(terrainTypes, featureTypes = {}) {
@@ -14,6 +14,9 @@ class TerrainRenderer {
         
         // Add varied grass color classes to terrain types
         this.setupVariedGrassColors();
+        
+        // NEW: River symbol to CSS class mapping
+        this.setupRiverClasses();
     }
     
     setupVariedGrassColors() {
@@ -30,6 +33,32 @@ class TerrainRenderer {
         ];
     }
     
+    // NEW: Set up river symbol to CSS class mapping
+    setupRiverClasses() {
+        this.riverSymbolClasses = {
+            // Basic flow directions
+            '═': 'river-horizontal',     // Horizontal flow
+            '║': 'river-vertical',       // Vertical flow
+            '╗': 'river-northeast',      // Northeast flow
+            '╔': 'river-northwest',      // Northwest flow
+            '╝': 'river-southeast',      // Southeast flow
+            '╚': 'river-southwest',      // Southwest flow
+            
+            // Junctions and confluences
+            '╦': 'river-junction',       // T-junction from north
+            '╩': 'river-junction',       // T-junction from south
+            '╣': 'river-junction',       // T-junction from east
+            '╠': 'river-junction',       // T-junction from west
+            '╬': 'river-confluence',     // Multiple rivers meet
+            
+            // Special features
+            '●': 'river-source',         // Spring source
+            '▼': 'river-mouth',          // River mouth
+            '≈': 'river-rapids',         // Rapids/fast flow
+            '~': 'river-basic'           // Default/generic river
+        };
+    }
+    
     /**
      * Gets a consistent grass color variation for a specific tile position
      */
@@ -41,84 +70,123 @@ class TerrainRenderer {
     }
     
     /**
-     * FIXED: Improved terrain class determination with proper fog of war support
+     * ENHANCED: Terrain class determination with river flow support
      */
-getTerrainClassName(terrain, x, y) {
-    // If there's a feature (like a tree), use the feature's class
-    if (terrain.feature) {
-        let className = `symbol ${terrain.feature.type}`;
-        if (terrain.className && terrain.className.includes('terrain-explored')) {
-            className += ' terrain-explored';
-        }
-        return className;
-    }
-    
-    // Check if this is a deer entity
-    if (terrain.deer) {
-        let className = `symbol deer-entity`;
-        
-        if (terrain.deer && typeof window !== 'undefined' && window.game && 
-            window.game.terrainSystem && window.game.terrainSystem.deerManager && 
-            window.game.terrainSystem.deerManager.debugMode) {
-            
-            const playerX = window.game.player.x;
-            const playerY = window.game.player.y;
-            
-            if (terrain.deer.canSeePosition && terrain.deer.canSeePosition(playerX, playerY)) {
-                className += ' deer-vision-player';
+    getTerrainClassName(terrain, x, y) {
+        // If there's a feature (like a tree), use the feature's class
+        if (terrain.feature) {
+            let className = `symbol ${terrain.feature.type}`;
+            if (terrain.className && terrain.className.includes('terrain-explored')) {
+                className += ' terrain-explored';
             }
+            return className;
         }
         
-        if (terrain.className && terrain.className.includes('terrain-explored')) {
-            className += ' terrain-explored';
+        // Check if this is a deer entity
+        if (terrain.deer) {
+            let className = `symbol deer-entity`;
+            
+            if (terrain.deer && typeof window !== 'undefined' && window.game && 
+                window.game.terrainSystem && window.game.terrainSystem.deerManager && 
+                window.game.terrainSystem.deerManager.debugMode) {
+                
+                const playerX = window.game.player.x;
+                const playerY = window.game.player.y;
+                
+                if (terrain.deer.canSeePosition && terrain.deer.canSeePosition(playerX, playerY)) {
+                    className += ' deer-vision-player';
+                }
+            }
+            
+            if (terrain.className && terrain.className.includes('terrain-explored')) {
+                className += ' terrain-explored';
+            }
+            
+            return className;
+        }
+        
+        // NEW: Handle flowing rivers with special classes
+        if (terrain.terrain === 'river') {
+            let className = 'symbol terrain-water';
+            
+            // Get the specific river flow class based on the symbol
+            const riverClass = this.getRiverFlowClass(terrain.symbol);
+            if (riverClass) {
+                className += ` ${riverClass}`;
+            }
+            
+            // Add lake class if this is actually a lake
+            if (terrain.riverInfo && terrain.riverInfo.tileType === 'lake') {
+                className += ' lake';
+            }
+            
+            // Preserve fog of war classes
+            if (terrain.className && terrain.className.includes('terrain-explored')) {
+                className += ' terrain-explored';
+            }
+            
+            return className;
+        }
+        
+        // Handle lakes specifically
+        if (terrain.terrain === 'lake') {
+            let className = 'symbol terrain-water lake';
+            
+            if (terrain.className && terrain.className.includes('terrain-explored')) {
+                className += ' terrain-explored';
+            }
+            
+            return className;
+        }
+        
+        // For plains terrain, use varied grass colors
+        if (terrain.terrain === 'plains') {
+            const grassVariation = this.getGrassVariation(x, y);
+            let className = `symbol ${grassVariation}`;
+            
+            if (terrain.className && terrain.className.includes('terrain-explored')) {
+                className += ' terrain-explored';
+            }
+            
+            return className;
+        }
+        
+        // For rocky terrain, add variations
+        if (terrain.terrain === 'rocks' || terrain.terrain === 'boulders' || terrain.terrain === 'stone') {
+            const rockVariation = this.getRockVariation(x, y, terrain.terrain);
+            let className = `symbol ${rockVariation}`;
+            
+            if (terrain.className && terrain.className.includes('terrain-explored')) {
+                className += ' terrain-explored';
+            }
+            
+            return className;
+        }
+        
+        // For all other terrain types, preserve fog classes
+        let className = `symbol ${terrain.className}`;
+        
+        if (terrain.className && terrain.className.includes('symbol')) {
+            className = terrain.className;
         }
         
         return className;
     }
     
-    // For plains terrain, use varied grass colors
-    if (terrain.terrain === 'plains') {
-        const grassVariation = this.getGrassVariation(x, y);
-        let className = `symbol ${grassVariation}`;
-        
-        if (terrain.className && terrain.className.includes('terrain-explored')) {
-            className += ' terrain-explored';
-        }
-        
-        return className;
+    // NEW: Get specific CSS class for river flow symbols
+    getRiverFlowClass(symbol) {
+        return this.riverSymbolClasses[symbol] || 'river-basic';
     }
     
-    // NEW: For rocky terrain, add variations
-    if (terrain.terrain === 'rocks' || terrain.terrain === 'boulders' || terrain.terrain === 'stone') {
-        const rockVariation = this.getRockVariation(x, y, terrain.terrain);
-        let className = `symbol ${rockVariation}`;
+    // Get rock terrain variations
+    getRockVariation(x, y, rockType) {
+        // Create consistent variations for each rock type
+        const hash = Math.abs((x * 73856093) ^ (y * 19349663));
+        const variationCount = 4; // 4 variations per rock type
+        const variationIndex = (hash % variationCount) + 1;
         
-        if (terrain.className && terrain.className.includes('terrain-explored')) {
-            className += ' terrain-explored';
-        }
-        
-        return className;
+        return `terrain-${rockType}-${variationIndex}`;
     }
-    
-    // For all other terrain types, preserve fog classes
-    let className = `symbol ${terrain.className}`;
-    
-    if (terrain.className && terrain.className.includes('symbol')) {
-        className = terrain.className;
-    }
-    
-    return className;
-}
-
-// NEW: Add this method to TerrainRenderer class
-getRockVariation(x, y, rockType) {
-    // Create consistent variations for each rock type
-    const hash = Math.abs((x * 73856093) ^ (y * 19349663));
-    const variationCount = 4; // 4 variations per rock type
-    const variationIndex = (hash % variationCount) + 1;
-    
-    return `terrain-${rockType}-${variationIndex}`;
-}
     
     render(gameArea, cameraStartX, cameraStartY, viewWidth, viewHeight, playerX, playerY, getTerrainFunction) {
         this.frameCount++;
@@ -135,7 +203,7 @@ getRockVariation(x, y, rockType) {
                 // Get terrain information for this tile
                 const terrain = getTerrainFunction(worldX, worldY);
                 
-                // FIXED: Handle rendering priority for tree canopy over player
+                // Handle rendering priority for tree canopy over player
                 if (worldX === playerX && worldY === playerY) {
                     // Check if player is under tree canopy
                     if (terrain.feature && terrain.feature.type === 'tree_canopy') {
@@ -147,7 +215,7 @@ getRockVariation(x, y, rockType) {
                         symbol = '◊';
                         className = 'symbol player';
                         
-                        // FIXED: Even the player symbol should be dimmed if in explored area
+                        // Even the player symbol should be dimmed if in explored area
                         if (terrain.className && terrain.className.includes('terrain-explored')) {
                             className += ' terrain-explored';
                         }
@@ -228,5 +296,15 @@ getRockVariation(x, y, rockType) {
             }
             console.log(`Row ${y}: ${row}`);
         }
+    }
+    
+    /**
+     * NEW: Debug method to test river symbol mappings
+     */
+    testRiverSymbols() {
+        console.log("🌊 River Symbol to CSS Class Mapping:");
+        Object.entries(this.riverSymbolClasses).forEach(([symbol, cssClass]) => {
+            console.log(`${symbol} → ${cssClass}`);
+        });
     }
 }
