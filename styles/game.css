@@ -149,6 +149,63 @@ body {
 .terrain-fog { color: #202020; }
 .terrain-explored { opacity: 0.6; }
 
+/* Fix for grass variations in fog of war */
+.terrain-grass-1.terrain-explored,
+.terrain-grass-2.terrain-explored,
+.terrain-grass-3.terrain-explored,
+.terrain-grass-4.terrain-explored,
+.terrain-grass-5.terrain-explored,
+.terrain-grass-6.terrain-explored,
+.terrain-grass-7.terrain-explored,
+.terrain-grass-8.terrain-explored {
+    opacity: 0.6;
+}
+
+
+/* Base rocky terrain colors */
+.terrain-rocks { color: #696969; }     /* Dim gray */
+.terrain-boulders { color: #778899; }  /* Light slate gray */
+.terrain-stone { color: #808080; }     /* Gray */
+
+/* Rocky terrain variations for visual interest */
+.terrain-rocks-1 { color: #696969; }   /* Dim gray */
+.terrain-rocks-2 { color: #708090; }   /* Slate gray */
+.terrain-rocks-3 { color: #778899; }   /* Light slate gray */
+.terrain-rocks-4 { color: #2f4f4f; }   /* Dark slate gray */
+
+.terrain-boulders-1 { color: #778899; } /* Light slate gray */
+.terrain-boulders-2 { color: #696969; } /* Dim gray */
+.terrain-boulders-3 { color: #708090; } /* Slate gray */
+.terrain-boulders-4 { color: #556b2f; } /* Dark olive green (mossy boulders) */
+
+.terrain-stone-1 { color: #808080; }    /* Gray */
+.terrain-stone-2 { color: #a9a9a9; }    /* Dark gray */
+.terrain-stone-3 { color: #696969; }    /* Dim gray */
+.terrain-stone-4 { color: #dcdcdc; }    /* Gainsboro (lighter stone) */
+
+/* Fog of war support for rocky terrain variations */
+.symbol.terrain-rocks-1.terrain-explored,
+.symbol.terrain-rocks-2.terrain-explored,
+.symbol.terrain-rocks-3.terrain-explored,
+.symbol.terrain-rocks-4.terrain-explored,
+.symbol.terrain-boulders-1.terrain-explored,
+.symbol.terrain-boulders-2.terrain-explored,
+.symbol.terrain-boulders-3.terrain-explored,
+.symbol.terrain-boulders-4.terrain-explored,
+.symbol.terrain-stone-1.terrain-explored,
+.symbol.terrain-stone-2.terrain-explored,
+.symbol.terrain-stone-3.terrain-explored,
+.symbol.terrain-stone-4.terrain-explored {
+    opacity: 0.6 !important;
+}
+
+/* Base terrain classes for fog of war */
+.symbol.terrain-rocks.terrain-explored,
+.symbol.terrain-boulders.terrain-explored,
+.symbol.terrain-stone.terrain-explored {
+    opacity: 0.6 !important;
+}
+
 /* Status bar */
 .status {
     position: fixed;

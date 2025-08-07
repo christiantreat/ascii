@@ -183,21 +183,34 @@ class ElevationModule extends TerrainModuleBase {
         return worldContext.isInBounds(x, y);
     }
     
-    getDataAt(x, y, worldContext) {
-        const elevation = this.getElevation(x, y);
-        
-        // Simple terrain classification based on elevation
-        let terrainType = 'plains';
-        if (elevation > 0.35) {
-            terrainType = 'foothills'; // Higher areas show as hills
+ getDataAt(x, y, worldContext) {
+    const elevation = this.getElevation(x, y);
+    
+    // Get geology info if available
+    const geologyModule = worldContext.getModule('geology');
+    const rockType = geologyModule ? geologyModule.getRockTypeAt(x, y) : 'soft';
+    
+    // Suggest terrain based on elevation and rock type
+    let terrainType = 'plains';
+    
+    if (rockType === 'hard') {
+        if (elevation > 0.6) {
+            terrainType = 'boulders';
+        } else if (elevation > 0.4) {
+            terrainType = 'rocks';
+        } else if (elevation > 0.25) {
+            terrainType = 'stone';
         }
-        
-        return {
-            elevation: elevation,
-            terrain: terrainType,
-            features: [`elevation-${elevation.toFixed(2)}`]
-        };
+    } else if (elevation > 0.35) {
+        terrainType = 'foothills';
     }
+    
+    return {
+        elevation: elevation,
+        terrain: terrainType,
+        features: [`elevation-${elevation.toFixed(2)}`, `rock-${rockType}`]
+    };
+}
     
     // === PUBLIC API FOR OTHER MODULES ===
     

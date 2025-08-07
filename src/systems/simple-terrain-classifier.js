@@ -1,5 +1,6 @@
-// === SIMPLE TERRAIN CLASSIFIER ===
+// === FIXED TERRAIN CLASSIFICATION ===
 // File: src/systems/simple-terrain-classifier.js
+// COMPLETE REPLACEMENT - Restores foothills/dirt while adding rocky terrain
 
 class SimpleTerrainClassifier {
     constructor(worldGenerator) {
@@ -15,15 +16,15 @@ class SimpleTerrainClassifier {
             return terrainData.terrain;
         }
         
-        // Otherwise, determine based on simple conditions
+        // Get elevation and rock type for classification
         const elevation = this.worldGenerator.getElevationAt(x, y);
+        const rockType = this.worldGenerator.getRockTypeAt ? this.worldGenerator.getRockTypeAt(x, y) : 'soft';
         const water = this.worldGenerator.getWaterAt(x, y);
         
         // Water takes precedence
         if (water.hasWater) {
             const hydrologyData = this.worldGenerator.getModuleData('hydrology');
             if (hydrologyData) {
-                // Check if position is on a river
                 const isOnRiver = hydrologyData.rivers.some(river => 
                     river.path.some(point => 
                         Math.abs(point.x - x) <= 1 && Math.abs(point.y - y) <= 1
@@ -32,7 +33,6 @@ class SimpleTerrainClassifier {
                 
                 if (isOnRiver) return 'river';
                 
-                // Check if position is in a lake
                 const isInLake = hydrologyData.lakes.some(lake => {
                     const distance = Math.sqrt((lake.x - x) ** 2 + (lake.y - y) ** 2);
                     return distance <= lake.radius;
@@ -41,16 +41,37 @@ class SimpleTerrainClassifier {
                 if (isInLake) return 'lake';
             }
             
-            // Default water type
             return 'lake';
         }
         
-        // Elevation-based terrain (simple)
-        if (elevation >= 0.35) {
-            return 'foothills'; // Hills show as foothills
+        // FIXED: Terrain classification that preserves foothills/dirt
+        
+        // Very high elevation with hard rock = boulders (grey)
+        if (rockType === 'hard' && elevation > 0.7) {
+            return 'boulders';
         }
         
-        // Default to plains
+        // High elevation with hard rock = rocky ground (grey) 
+        if (rockType === 'hard' && elevation > 0.55) {
+            return 'rocks';
+        }
+        
+        // Medium-high elevation (regardless of rock type) = foothills (brown dirt)
+        if (elevation > 0.4) {
+            return 'foothills';
+        }
+        
+        // Lower elevation with hard rock = stone outcrops (grey)
+        if (rockType === 'hard' && elevation > 0.25) {
+            return 'stone';
+        }
+        
+        // Medium elevation (soft rock) = foothills (brown dirt)
+        if (elevation > 0.3) {
+            return 'foothills';
+        }
+        
+        // Default to plains (green grass)
         return 'plains';
     }
     
@@ -96,7 +117,7 @@ class SimpleTerrainClassifier {
     
     isFoothills(x, y) {
         const elevation = this.worldGenerator.getElevationAt(x, y);
-        return elevation >= 0.35;
+        return elevation >= 0.3; // Lowered threshold to show more foothills
     }
     
     isInForest(x, y) {

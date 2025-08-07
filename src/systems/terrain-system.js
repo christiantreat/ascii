@@ -1,36 +1,42 @@
-// === CORE TERRAIN SYSTEM (MAIN CONTROLLER) ===
+// === FIXED TERRAIN SYSTEM (MAIN CONTROLLER) ===
 // File: src/systems/terrain-system.js
-// This is now just the main coordinator that delegates to specialized subsystems
+// COMPLETE REPLACEMENT - Fixed fog of war application order
 
 class TerrainSystem {
     constructor() {
-            // Initialize all subsystems
-            this.worldSystem = new WorldSystem();
-            this.fogSystem = new FogOfWarSystem();
-            this.treeSystem = new TreeSystem();
-            this.deerSystem = new DeerSystem(this);
-            this.renderer = new TerrainRenderer(this.getTerrainTypes(), this.getFeatureTypes());
+        // Initialize all subsystems
+        this.worldSystem = new WorldSystem();
+        this.fogSystem = new FogOfWarSystem();
+        this.treeSystem = new TreeSystem();
+        this.deerSystem = new DeerSystem(this);
+        this.renderer = new TerrainRenderer(this.getTerrainTypes(), this.getFeatureTypes());
 
-            // ADDED: Give fog system reference to this terrain system for line of sight blocking
-            this.fogSystem.setTerrainSystem(this);
+        // Give fog system reference to this terrain system for line of sight blocking
+        this.fogSystem.setTerrainSystem(this);
 
-            // Initialize world
-            this.initializeWorld();
-            this.calibrateDisplay();
-        }
-    
-    // Define terrain and feature types (these could be moved to config files later)
-    getTerrainTypes() {
-        return {
-            plains: { symbol: '▓', className: 'terrain-grass', name: 'Plains' },
-            foothills: { symbol: '▒', className: 'terrain-hills', name: 'Foothills' },
-            river: { symbol: '~', className: 'terrain-water', name: 'River' },
-            lake: { symbol: '▀', className: 'terrain-water', name: 'Lake' },
-            unknown: { symbol: '░', className: 'terrain-unknown', name: 'Unknown' },
-            fog: { symbol: '▓', className: 'terrain-fog', name: 'Unknown' },
-            explored: { symbol: '░', className: 'terrain-explored', name: 'Explored' }
-        };
+        // Initialize world
+        this.initializeWorld();
+        this.calibrateDisplay();
     }
+    
+    // Define terrain and feature types
+getTerrainTypes() {
+    return {
+        plains: { symbol: '▓', className: 'terrain-grass', name: 'Plains' },
+        foothills: { symbol: '▒', className: 'terrain-hills', name: 'Foothills' },
+        river: { symbol: '~', className: 'terrain-water', name: 'River' },
+        lake: { symbol: '▀', className: 'terrain-water', name: 'Lake' },
+        
+        // NEW: Rocky terrain types
+        rocks: { symbol: '▓', className: 'terrain-rocks', name: 'Rocky Ground' },
+        boulders: { symbol: '▒', className: 'terrain-boulders', name: 'Boulder Field' },
+        stone: { symbol: '░', className: 'terrain-stone', name: 'Stone Outcrops' },
+        
+        unknown: { symbol: '░', className: 'terrain-unknown', name: 'Unknown' },
+        fog: { symbol: '▓', className: 'terrain-fog', name: 'Unknown' },
+        explored: { symbol: '░', className: 'terrain-explored', name: 'Explored' }
+    };
+}
     
     getFeatureTypes() {
         return {
@@ -66,8 +72,8 @@ class TerrainSystem {
         this.treeSystem.clear();
         this.deerSystem.clear();
     }
-    
-// Main terrain query method - coordinates all subsystems
+
+    // FIXED: Main terrain query method with proper fog of war handling
     getTerrainAt(x, y, playerX = null, playerY = null) {
         if (!this.isValidPosition(x, y)) {
             return this.getTerrainTypes().unknown;
@@ -85,10 +91,8 @@ class TerrainSystem {
                 terrain.className = this.getFeatureTypes()[treeFeature.type].className;
                 terrain.name = this.getFeatureTypes()[treeFeature.type].name;
                 
-                // FIXED: If this is tree canopy, it should render on top of everything
-                // This creates the "walking under trees" effect
+                // If this is tree canopy, it should render on top of everything
                 if (treeFeature.type === 'tree_canopy') {
-                    // Tree canopy takes absolute priority - player/deer are hidden underneath
                     terrain.renderPriority = 'canopy';
                 }
             }
@@ -98,7 +102,8 @@ class TerrainSystem {
                 terrain = this.deerSystem.renderDeer(x, y, terrain);
             }
             
-            // Apply fog of war
+            // FIXED: Apply fog of war LAST, after all other processing
+            // This ensures that fog of war gets the final say on className
             if (this.fogSystem.isEnabled() && playerX !== null && playerY !== null) {
                 terrain = this.fogSystem.applyFogOfWar(x, y, playerX, playerY, terrain);
             }
@@ -110,7 +115,7 @@ class TerrainSystem {
         }
     }
     
-// Movement validation - checks all blocking systems
+    // Movement validation - checks all blocking systems
     canMoveTo(x, y) {
         try {
             if (!this.isValidPosition(x, y)) return false;

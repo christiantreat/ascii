@@ -134,10 +134,13 @@ class WorldSystem {
         }
     }
     
-    isTerrainWalkable(terrainType) {
-        const unwalkableTerrains = ['lake', 'river']; // FIXED: Added river
-        return !unwalkableTerrains.includes(terrainType);
-    }
+isTerrainWalkable(terrainType) {
+    const unwalkableTerrains = ['lake', 'river']; // Water blocks movement
+    const slowTerrains = ['rocks', 'boulders']; // Rocky terrain is harder to traverse
+    
+    // For now, all rocky terrain is walkable but could be made slower
+    return !unwalkableTerrains.includes(terrainType);
+}
     
     // Terrain type mapping methods
     getTerrainSymbol(terrainType) {

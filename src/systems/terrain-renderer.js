@@ -1,5 +1,7 @@
-// === TERRAIN RENDERER MODULE (FIXED VERSION) ===
-// File: terrain-renderer.js
+// === FIXED TERRAIN RENDERER MODULE ===
+// File: src/systems/terrain-renderer.js
+// COMPLETE REPLACEMENT - Fixed grass variation handling in fog of war
+
 class TerrainRenderer {
     constructor(terrainTypes, featureTypes = {}) {
         this.terrainTypes = terrainTypes;
@@ -39,46 +41,86 @@ class TerrainRenderer {
     }
     
     /**
-     * FIXED: Simplified terrain class determination
+     * FIXED: Improved terrain class determination with proper fog of war support
      */
-    getTerrainClassName(terrain, x, y) {
-        // If there's a feature (like a tree), use the feature's class
-        if (terrain.feature) {
-            return `symbol ${terrain.feature.type}`;
+getTerrainClassName(terrain, x, y) {
+    // If there's a feature (like a tree), use the feature's class
+    if (terrain.feature) {
+        let className = `symbol ${terrain.feature.type}`;
+        if (terrain.className && terrain.className.includes('terrain-explored')) {
+            className += ' terrain-explored';
         }
-        
-        // FIXED: Check if this is a deer entity
-        if (terrain.deer) {
-            let className = `symbol deer-entity`;
-            
-            // Add debug visualization if deer debug mode is on
-            if (terrain.deer && typeof window !== 'undefined' && window.game && 
-                window.game.terrainSystem && window.game.terrainSystem.deerManager && 
-                window.game.terrainSystem.deerManager.debugMode) {
-                
-                // This will be handled by the debug overlay system
-                const playerX = window.game.player.x;
-                const playerY = window.game.player.y;
-                
-                if (terrain.deer.canSeePosition && terrain.deer.canSeePosition(playerX, playerY)) {
-                    className += ' deer-vision-player';
-                }
-            }
-            
-            return className;
-        }
-        
-        // For plains terrain, use varied grass colors
-        if (terrain.terrain === 'plains') {
-            const grassVariation = this.getGrassVariation(x, y);
-            return `symbol ${grassVariation}`;
-        }
-        
-        // For all other terrain types, use their normal class
-        return `symbol ${terrain.className}`;
+        return className;
     }
     
-render(gameArea, cameraStartX, cameraStartY, viewWidth, viewHeight, playerX, playerY, getTerrainFunction) {
+    // Check if this is a deer entity
+    if (terrain.deer) {
+        let className = `symbol deer-entity`;
+        
+        if (terrain.deer && typeof window !== 'undefined' && window.game && 
+            window.game.terrainSystem && window.game.terrainSystem.deerManager && 
+            window.game.terrainSystem.deerManager.debugMode) {
+            
+            const playerX = window.game.player.x;
+            const playerY = window.game.player.y;
+            
+            if (terrain.deer.canSeePosition && terrain.deer.canSeePosition(playerX, playerY)) {
+                className += ' deer-vision-player';
+            }
+        }
+        
+        if (terrain.className && terrain.className.includes('terrain-explored')) {
+            className += ' terrain-explored';
+        }
+        
+        return className;
+    }
+    
+    // For plains terrain, use varied grass colors
+    if (terrain.terrain === 'plains') {
+        const grassVariation = this.getGrassVariation(x, y);
+        let className = `symbol ${grassVariation}`;
+        
+        if (terrain.className && terrain.className.includes('terrain-explored')) {
+            className += ' terrain-explored';
+        }
+        
+        return className;
+    }
+    
+    // NEW: For rocky terrain, add variations
+    if (terrain.terrain === 'rocks' || terrain.terrain === 'boulders' || terrain.terrain === 'stone') {
+        const rockVariation = this.getRockVariation(x, y, terrain.terrain);
+        let className = `symbol ${rockVariation}`;
+        
+        if (terrain.className && terrain.className.includes('terrain-explored')) {
+            className += ' terrain-explored';
+        }
+        
+        return className;
+    }
+    
+    // For all other terrain types, preserve fog classes
+    let className = `symbol ${terrain.className}`;
+    
+    if (terrain.className && terrain.className.includes('symbol')) {
+        className = terrain.className;
+    }
+    
+    return className;
+}
+
+// NEW: Add this method to TerrainRenderer class
+getRockVariation(x, y, rockType) {
+    // Create consistent variations for each rock type
+    const hash = Math.abs((x * 73856093) ^ (y * 19349663));
+    const variationCount = 4; // 4 variations per rock type
+    const variationIndex = (hash % variationCount) + 1;
+    
+    return `terrain-${rockType}-${variationIndex}`;
+}
+    
+    render(gameArea, cameraStartX, cameraStartY, viewWidth, viewHeight, playerX, playerY, getTerrainFunction) {
         this.frameCount++;
         let display = '';
         
@@ -104,6 +146,11 @@ render(gameArea, cameraStartX, cameraStartY, viewWidth, viewHeight, playerX, pla
                         // Normal player rendering
                         symbol = '◊';
                         className = 'symbol player';
+                        
+                        // FIXED: Even the player symbol should be dimmed if in explored area
+                        if (terrain.className && terrain.className.includes('terrain-explored')) {
+                            className += ' terrain-explored';
+                        }
                     }
                 } else {
                     // Use the terrain/feature/deer symbol

@@ -1,6 +1,6 @@
-// === FOG OF WAR SYSTEM ===
+// === FIXED FOG OF WAR SYSTEM ===
 // File: src/systems/fog-of-war-system.js
-// Handles all fog of war, vision, and exploration mechanics
+// COMPLETE REPLACEMENT - Fixed grass dimming issue
 
 class FogOfWarSystem {
     constructor() {
@@ -24,7 +24,7 @@ class FogOfWarSystem {
         this.terrainSystem = null;
     }
     
-    // ADDED: Method to set terrain system reference
+    // Method to set terrain system reference
     setTerrainSystem(terrainSystem) {
         this.terrainSystem = terrainSystem;
     }
@@ -61,7 +61,7 @@ class FogOfWarSystem {
         }
     }
     
-    // Main fog of war application
+    // FIXED: Main fog of war application with proper grass handling
     applyFogOfWar(x, y, playerX, playerY, terrain) {
         if (!this.enabled) {
             return terrain;
@@ -80,15 +80,27 @@ class FogOfWarSystem {
                 discovered: false
             };
         } else if (!isInVision && isExplored) {
-            // Previously explored but not currently visible - show dimmed
+            // FIXED: Previously explored but not currently visible - show dimmed
+            // Make sure to preserve all terrain properties and just add the explored class
             return {
                 ...terrain,
-                className: terrain.className + ' terrain-explored'
+                className: this.addExploredClass(terrain.className)
             };
         }
         
         // Currently visible - show normally
         return terrain;
+    }
+    
+    // FIXED: Helper method to properly add explored class
+    addExploredClass(originalClassName) {
+        // Don't add if already present
+        if (originalClassName.includes('terrain-explored')) {
+            return originalClassName;
+        }
+        
+        // Add the explored class at the end
+        return originalClassName + ' terrain-explored';
     }
     
     // Vision calculation
@@ -127,7 +139,7 @@ class FogOfWarSystem {
         }
     }
     
-    // FIXED: Line of sight now checks for tree blocking
+    // Line of sight calculation
     hasLineOfSight(fromX, fromY, toX, toY) {
         try {
             // Simple line of sight using Bresenham's line algorithm
@@ -151,7 +163,7 @@ class FogOfWarSystem {
                 
                 // Skip the starting position for blocking checks
                 if (i > 0) {
-                    // RESTORED: Check if trees block line of sight
+                    // Check if trees block line of sight
                     if (this.isPositionBlocking(x, y)) {
                         return false; // Vision is blocked by a tree
                     }
@@ -173,7 +185,7 @@ class FogOfWarSystem {
         }
     }
     
-    // RESTORED: Check if a position blocks line of sight
+    // Check if a position blocks line of sight
     isPositionBlocking(x, y) {
         try {
             if (!this.terrainSystem) return false;
@@ -195,10 +207,10 @@ class FogOfWarSystem {
         }
     }
     
-    // Exploration management
+    // FIXED: Exploration management with better tracking
     updateExploration(playerX, playerY) {
         try {
-            // Mark tiles in the small exploration radius
+            // Mark tiles in the small exploration radius around player
             for (let dx = -this.exploredRadius; dx <= this.exploredRadius; dx++) {
                 for (let dy = -this.exploredRadius; dy <= this.exploredRadius; dy++) {
                     const x = playerX + dx;
