@@ -714,9 +714,34 @@ body {
 /* Dawn fog */
 .terrain-fog.time-dawn { color: var(--dawn-fog) !important; }
 
+/* === UNKNOWN TERRAIN TIME-BASED LIGHTING === */
+
+/* Day unknown terrain - bright sky blue (same as day fog) */
+.time-day .terrain-unknown,
+.time-day.terrain-unknown { 
+    color: #87ceeb !important; /* Sky blue - same as --day-fog */
+}
+
+/* Dusk unknown terrain - dusky blue-gray */
+.time-dusk .terrain-unknown,
+.time-dusk.terrain-unknown { 
+    color: #6b6b7d !important; /* Dawn mist color - bluish gray */
+}
+
+/* Night unknown terrain - keep dark as intended */
+.time-night .terrain-unknown,
+.time-night.terrain-unknown { 
+    color: #404040 !important; /* Dark gray - original color */
+}
+
+/* Dawn unknown terrain - cool blue-gray */
+.time-dawn .terrain-unknown,
+.time-dawn.terrain-unknown { 
+    color: #6b6b7d !important; /* Dawn mist - same as dusk for consistency */
+}
+
 /* === EXPLORED TERRAIN WITH TIME-BASED LIGHTING === */
 /* Explored areas are dimmed versions of the time-appropriate colors */
-
 .terrain-explored.time-day { opacity: 0.5 !important; }
 .terrain-explored.time-dusk { opacity: 0.4 !important; }
 .terrain-explored.time-night { opacity: 0.3 !important; }
@@ -882,3 +907,59 @@ body {
 .time-night.terrain-stone-3 { color: #2a2a2a !important; }
 .time-night .terrain-stone-4,
 .time-night.terrain-stone-4 { color: #505050 !important; }
+
+/* Add to styles/game.css */
+
+/* Companion dog styles */
+.companion-dog {
+    color: #ff69b4 !important; /* Hot pink heart */
+    text-shadow: 0 0 2px #ff69b4;
+    font-weight: bold;
+}
+
+/* Following state - shows loyalty */
+.companion-dog.companion-following {
+    color: #ff1493 !important; /* Deep pink */
+    text-shadow: 0 0 3px #ff1493;
+    animation: companion-happy 2s ease-in-out infinite;
+}
+
+/* Coming when called - excited movement */
+.companion-dog.companion-coming {
+    color: #ffb6c1 !important; /* Light pink */
+    text-shadow: 0 0 4px #ff69b4;
+    animation: companion-excited 0.3s ease-in-out infinite alternate;
+}
+
+@keyframes companion-happy {
+    from { 
+        color: #ff1493;
+        text-shadow: 0 0 3px #ff1493;
+    }
+    to { 
+        color: #ff69b4;
+        text-shadow: 0 0 5px #ff69b4;
+    }
+}
+
+@keyframes companion-excited {
+    from { 
+        transform: scale(1);
+        color: #ffb6c1;
+    }
+    to { 
+        transform: scale(1.1);
+        color: #ff69b4;
+    }
+}
+
+/* Time of day support for companion */
+.companion-dog.time-night {
+    color: #cc5577 !important;
+    text-shadow: 0 0 3px #cc5577;
+}
+
+.companion-dog.time-day {
+    color: #ff69b4 !important;
+    text-shadow: 0 0 2px #ff69b4;
+}

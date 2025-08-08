@@ -3,20 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Reactive Deer AI Game - Day/Night Cycle System</title>
+    <title>Reactive Deer AI Game - Day/Night Cycle with Companion Dog</title>
     <link rel="stylesheet" href="styles/game.css">
 </head>
 <body>
-    <div id="gameArea">Loading Day/Night Terrain System...</div>
+    <div id="gameArea">Loading Day/Night Terrain System with Companion...</div>
     
     <div class="instructions fade-out">
-    <strong>🎮 REACTIVE DEER AI GAME - DAY/NIGHT CYCLE SYSTEM</strong><br>
+    <strong>🎮 REACTIVE DEER AI GAME - DAY/NIGHT CYCLE + COMPANION DOG ♥</strong><br>
     <strong>Movement:</strong> Arrow Keys/WASD • <strong>Menu:</strong> M key • <strong>Fog:</strong> F<br>
     <strong>🌅 TIME OF DAY:</strong> N (advance time) • F1-F4 (day/dusk/night/dawn) • J (time status)<br>
+    <strong>🐕 COMPANION DOG:</strong> C (come here!) • P (companion status)<br>
     <strong>🦌 DEER REACT INSTANTLY:</strong> Watch deer flee the moment you move toward them!<br>
     <strong>🏔️ GEOLOGICAL TERRAIN:</strong> 7 (mountains) • 8 (hills) • 9 (plains) • 0 (volcanic)<br>
     <strong>🌞🌙 DYNAMIC LIGHTING:</strong> Vision range changes with time! Day=long, Night=short<br>
-    <em>Experience atmospheric day/night cycles with realistic fog of war!</em>
+    <em>Experience atmospheric day/night cycles with a loyal companion at your side!</em>
     </div>
         
     <div class="status">
@@ -48,15 +49,16 @@
             lastPlayerMove: 0
         };
 
-        // Module loading tracker
+        // Module loading tracker - UPDATED with companion system
         window.moduleLoadStatus = {
             worldSystem: false,
             fogSystem: false,
             treeSystem: false,
             deerSystem: false,
+            companionSystem: false,  // NEW
             terrainSystem: false,
             menuSystem: false,
-            timeSystem: false  // NEW
+            timeSystem: false
         };
 
         function updateLoadingStatus(moduleName) {
@@ -100,7 +102,7 @@
     
     <!-- STEP 4: Specialized subsystems -->
     <script src="src/systems/world-system.js" onload="updateLoadingStatus('worldSystem')"></script>
-    <!-- NEW: Load time system BEFORE fog system since fog depends on it -->
+    <!-- Load time system BEFORE fog system since fog depends on it -->
     <script src="src/systems/time-of-day-system.js" onload="updateLoadingStatus('timeSystem')"></script>
     <script src="src/systems/fog-of-war-system.js" onload="updateLoadingStatus('fogSystem')"></script>
     <script src="src/systems/tree-system.js" onload="updateLoadingStatus('treeSystem')"></script>
@@ -110,17 +112,21 @@
     <script src="src/entities/deer.js"></script>
     <script src="src/systems/deer-system.js" onload="updateLoadingStatus('deerSystem')"></script>
     
-    <!-- STEP 6: Rendering and UI (must load before game engine) -->
+    <!-- NEW: STEP 6: Companion system (depends on entities and terrain) -->
+    <script src="src/entities/companion-dog.js"></script>
+    <script src="src/systems/companion-system.js" onload="updateLoadingStatus('companionSystem')"></script>
+    
+    <!-- STEP 7: Rendering and UI (must load before game engine) -->
     <script src="src/systems/terrain-renderer.js"></script>
     <script src="src/systems/camera-system.js"></script>
     <script src="src/ui/ui-controller.js"></script>
     <script src="src/ui/menu-system.js" onload="updateLoadingStatus('menuSystem')"></script>
     <script src="src/systems/input-handler.js"></script>
     
-    <!-- STEP 7: Main terrain system coordinator (loads after all subsystems) -->
+    <!-- STEP 8: Main terrain system coordinator (loads after all subsystems) -->
     <script src="src/systems/terrain-system.js" onload="updateLoadingStatus('terrainSystem')"></script>
     
-    <!-- STEP 8: Main game engine (loads last - depends on everything) -->
+    <!-- STEP 9: Main game engine (loads last - depends on everything) -->
     <script src="src/main.js"></script>
     <script src="src/game-engine.js"></script>
     
@@ -136,7 +142,7 @@
                 'MenuSystem': window.MenuSystem,
                 'TerrainSystem': window.TerrainSystem,
                 'GameEngine': window.GameEngine,
-                'TimeOfDaySystem': window.TimeOfDaySystem  // NEW
+                'TimeOfDaySystem': window.TimeOfDaySystem
             };
             
             // Check classes that might be defined but not global
@@ -144,10 +150,12 @@
                 'UIController': typeof UIController !== 'undefined',
                 'InputHandler': typeof InputHandler !== 'undefined',
                 'DeerSystem': typeof DeerSystem !== 'undefined',
+                'CompanionSystem': typeof CompanionSystem !== 'undefined',  // NEW
                 'TreeSystem': typeof TreeSystem !== 'undefined',
                 'WorldSystem': typeof WorldSystem !== 'undefined',
                 'FogOfWarSystem': typeof FogOfWarSystem !== 'undefined',
-                'TimeOfDaySystem': typeof TimeOfDaySystem !== 'undefined'  // NEW
+                'TimeOfDaySystem': typeof TimeOfDaySystem !== 'undefined',
+                'CompanionDog': typeof CompanionDog !== 'undefined'  // NEW
             };
             
             console.log("Global classes:", globalClasses);
@@ -175,6 +183,13 @@
             
             if (missingGlobal.length === 0 && missingDefined.length === 0) {
                 console.log("✅ All required classes loaded successfully");
+            }
+            
+            // Special check for companion system
+            if (typeof CompanionSystem !== 'undefined' && typeof CompanionDog !== 'undefined') {
+                console.log("🐕 Companion system ready!");
+            } else {
+                console.error("❌ Companion system not available");
             }
             
             // Special check for day/night system

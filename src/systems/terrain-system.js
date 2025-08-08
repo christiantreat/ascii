@@ -1,6 +1,6 @@
-// === TERRAIN SYSTEM WITH TIME OF DAY ===
+// === TERRAIN SYSTEM WITH COMPANION DOG ===
 // File: src/systems/terrain-system.js
-// COMPLETE REPLACEMENT - Now includes time of day support
+// COMPLETE REPLACEMENT - Now includes companion dog support
 
 class TerrainSystem {
     constructor() {
@@ -14,9 +14,12 @@ class TerrainSystem {
         // NEW: Initialize time of day system
         this.timeOfDaySystem = new TimeOfDaySystem();
 
+        // NEW: Initialize companion system
+        this.companionSystem = new CompanionSystem(this);
+
         // Give systems references to each other
         this.fogSystem.setTerrainSystem(this);
-        this.fogSystem.setTimeOfDaySystem(this.timeOfDaySystem); // NEW
+        this.fogSystem.setTimeOfDaySystem(this.timeOfDaySystem);
 
         // Initialize world
         this.initializeWorld();
@@ -62,6 +65,9 @@ class TerrainSystem {
             // Initialize deer after trees are placed
             this.deerSystem.initialize();
             
+            // NEW: Initialize companion after deer
+            this.companionSystem.initialize();
+            
             console.log("Terrain system initialization complete!");
             this.logWorldStats();
         } catch (error) {
@@ -75,6 +81,7 @@ class TerrainSystem {
         // Create minimal systems that won't crash
         this.treeSystem.clear();
         this.deerSystem.clear();
+        // Don't clear companion system - let it handle its own fallback
     }
 
     // Main terrain query method with proper fog of war handling
@@ -104,6 +111,13 @@ class TerrainSystem {
             // Add deer if present (but only if not under canopy)
             if (!terrain.renderPriority || terrain.renderPriority !== 'canopy') {
                 terrain = this.deerSystem.renderDeer(x, y, terrain);
+            }
+            
+            // NEW: Add companion if present (but only if not under canopy and no deer)
+            if (!terrain.renderPriority || terrain.renderPriority !== 'canopy') {
+                if (!terrain.deer) { // Only show companion if no deer at this position
+                    terrain = this.companionSystem.renderCompanion(x, y, terrain);
+                }
             }
             
             // Apply fog of war LAST, after all other processing
@@ -149,6 +163,10 @@ class TerrainSystem {
         
         // Notify deer system
         this.deerSystem.onPlayerMoved(playerX, playerY);
+        
+        // NEW: Notify companion system
+        // (Companion updates happen automatically in their update loop,
+        // but we could add specific player movement notifications here if needed)
     }
     
     // Rendering
@@ -272,6 +290,10 @@ class TerrainSystem {
             this.worldSystem.regenerateWorld(centerX, centerY);
             this.treeSystem.generateTrees(this.worldSystem);
             this.deerSystem.respawnDeer();
+            // NEW: Respawn companion in new world
+            if (this.companionSystem) {
+                this.companionSystem.respawnCompanion();
+            }
             this.fogSystem.clearExploration();
             this.logWorldStats();
             console.log("World regenerated successfully!");
@@ -328,42 +350,70 @@ class TerrainSystem {
         return this.deerSystem;
     }
     
+    // NEW: Companion system access
+    get companionManager() {
+        return this.companionSystem;
+    }
+    
+    // NEW: Companion controls
+    callCompanion() {
+        if (this.companionSystem) {
+            this.companionSystem.callCompanion();
+        }
+    }
+    
+    getCompanionStatus() {
+        if (this.companionSystem) {
+            return this.companionSystem.getStats();
+        }
+        return { hasCompanion: false };
+    }
+    
+    getCompanionDebugInfo() {
+        if (this.companionSystem) {
+            return this.companionSystem.getDebugInfo();
+        }
+        return null;
+    }
+    
     // Utility methods
     logWorldStats() {
         try {
             const worldStats = this.worldSystem.getStats();
             const treeStats = this.treeSystem.getStats();
             const deerStats = this.deerSystem.getStats();
+            const companionStats = this.getCompanionStatus(); // NEW
             const timeStatus = this.getTimeOfDayStatus();
             
             console.log("World Statistics:");
             console.log(`- Hills: ${worldStats.hills}`);
             console.log(`- Rivers: ${worldStats.rivers}`);
-           console.log(`- Lakes: ${worldStats.lakes}`);
-           console.log(`- Trees: ${treeStats.treeCount}`);
-           console.log(`- Deer: ${deerStats.deerCount}`);
-           console.log(`- Time of Day: ${timeStatus.timeOfDay} (${timeStatus.description})`);
-       } catch (error) {
-           console.warn("Error logging world stats:", error);
-       }
-   }
-   
-   calibrateDisplay() {
-       if (document.readyState === 'loading') {
-           document.addEventListener('DOMContentLoaded', () => {
-               this.renderer.calibrateCharacterSize();
-           });
-       } else {
-           this.renderer.calibrateCharacterSize();
-       }
-   }
-   
-   getViewDimensions(gameArea) {
-       return this.renderer.getViewDimensions(gameArea);
-   }
+            console.log(`- Lakes: ${worldStats.lakes}`);
+            console.log(`- Trees: ${treeStats.treeCount}`);
+            console.log(`- Deer: ${deerStats.deerCount}`);
+            console.log(`- Companion: ${companionStats.hasCompanion ? 'Yes' : 'No'}${companionStats.hasCompanion ? ` (${companionStats.state})` : ''}`); // NEW
+            console.log(`- Time of Day: ${timeStatus.timeOfDay} (${timeStatus.description})`);
+        } catch (error) {
+            console.warn("Error logging world stats:", error);
+        }
+    }
+    
+    calibrateDisplay() {
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', () => {
+                this.renderer.calibrateCharacterSize();
+            });
+        } else {
+            this.renderer.calibrateCharacterSize();
+        }
+    }
+    
+    getViewDimensions(gameArea) {
+        return this.renderer.getViewDimensions(gameArea);
+    }
 }
 
 // Make TerrainSystem globally available
 if (typeof window !== 'undefined') {
-   window.TerrainSystem = TerrainSystem;
+    window.TerrainSystem = TerrainSystem;
 }
