@@ -1,6 +1,6 @@
-// === UPDATED GAME ENGINE WITH MENU SYSTEM ===
+// === FIXED GAME ENGINE WITH MENU SYSTEM ===
 // File: src/game-engine.js
-// COMPLETE REPLACEMENT - Now includes pauseable menu system
+// COMPLETE REPLACEMENT - Fixed menu rendering issues
 
 class GameEngine {
     constructor() {
@@ -19,6 +19,9 @@ class GameEngine {
         // NEW: Game loop control
         this.gameLoopRunning = false;
         this.gameLoopId = null;
+        
+        // Store reference to overlay for menu cleanup
+        this.menuOverlay = null;
         
         // NEW: Menu system (initialized after UI controller)
         // Check if MenuSystem is available
@@ -176,23 +179,133 @@ class GameEngine {
         }
     }
     
+    // FIXED: Simplified rendering that works with menu overlay
     render() {
-        // NEW: Check if menu is visible and render accordingly
-        if (this.menuSystem.isMenuVisible()) {
-            // First render the normal terrain
+        try {
+            // Always render the terrain first
             this.terrainSystem.renderTerrain(this.gameArea, this.player.x, this.player.y);
             
-            // Then render menu overlay on top
-            this.menuSystem.render(
-                this.gameArea,
-                (x, y) => this.terrainSystem.getTerrainAt(x, y, this.player.x, this.player.y),
-                this.player.x,
-                this.player.y
-            );
-        } else {
-            // Normal rendering
-            this.terrainSystem.renderTerrain(this.gameArea, this.player.x, this.player.y);
+            // Clean up any existing menu overlay
+            this.cleanupMenuOverlay();
+            
+            // If menu is visible, render it as an overlay
+            if (this.menuSystem.isMenuVisible()) {
+                this.renderMenuOverlay();
+            }
+        } catch (error) {
+            console.error("Render error:", error);
         }
+    }
+    
+    // FIXED: Smaller menu overlay that matches game style
+    renderMenuOverlay() {
+        try {
+            // Remove any existing overlay
+            this.cleanupMenuOverlay();
+            
+            // Create menu overlay
+            this.menuOverlay = document.createElement('div');
+            this.menuOverlay.id = 'menu-overlay';
+            this.menuOverlay.style.cssText = `
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0, 0, 0, 0.8);
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                z-index: 1000;
+                font-family: 'Courier New', monospace;
+            `;
+            
+            // Create menu content - MUCH SMALLER
+            const menuContent = document.createElement('div');
+            menuContent.style.cssText = `
+                background: rgba(20, 20, 20, 0.98);
+                border: 1px solid #666;
+                padding: 12px 16px;
+                color: white;
+                font-size: 12px;
+                min-width: 280px;
+                max-width: 350px;
+                text-align: left;
+                line-height: 1.2;
+            `;
+            
+            // Generate menu HTML
+            menuContent.innerHTML = this.generateMenuHTML();
+            this.menuOverlay.appendChild(menuContent);
+            
+            // Make sure gameArea is positioned relative
+            this.gameArea.style.position = 'relative';
+            this.gameArea.appendChild(this.menuOverlay);
+            
+        } catch (error) {
+            console.error("Menu overlay render error:", error);
+        }
+    }
+    
+    // FIXED: Smaller menu HTML that matches ASCII game style
+    generateMenuHTML() {
+        if (!this.menuSystem.currentMenu) return "<div>No menu available</div>";
+        
+        const menu = this.menuSystem.currentMenu;
+        let html = `<div style="text-align: center; color: #ffd700; font-weight: bold; font-size: 14px; margin-bottom: 8px; border-bottom: 1px solid #444; padding-bottom: 6px;">
+            ${menu.title}
+        </div>`;
+        
+        // Add menu items - smaller and more compact
+        menu.items.forEach((item, index) => {
+            const isSelected = index === this.menuSystem.selectedIndex;
+            const textColor = isSelected ? '#ff6b6b' : (item.action ? '#ffffff' : '#888888');
+            const backgroundColor = isSelected ? 'rgba(255, 107, 107, 0.2)' : 'transparent';
+            const arrow = isSelected ? '>' : ' ';
+            
+            html += `<div style="
+                color: ${textColor};
+                background: ${backgroundColor};
+                margin: 2px 0;
+                padding: 3px 6px;
+                cursor: ${item.action ? 'pointer' : 'default'};
+                font-size: 11px;
+                font-family: 'Courier New', monospace;
+            ">
+                <span style="color: #ff6b6b; font-weight: bold; width: 12px; display: inline-block;">${arrow}</span>${item.text}
+            </div>`;
+        });
+        
+        // Add compact instructions
+        html += `<div style="
+            margin-top: 8px;
+            padding-top: 6px;
+            border-top: 1px solid #444;
+            font-size: 10px;
+            color: #888;
+            text-align: center;
+            line-height: 1.2;
+        ">
+            ↑↓/WS: Navigate | Enter: Select | Esc: Back | M: Close
+        </div>`;
+        
+        return html;
+    }
+    
+    // NEW: Clean up menu overlay
+    cleanupMenuOverlay() {
+        if (this.menuOverlay && this.menuOverlay.parentNode) {
+            this.menuOverlay.parentNode.removeChild(this.menuOverlay);
+            this.menuOverlay = null;
+        }
+        
+        // Also clean up any orphaned overlays
+        const existingOverlays = document.querySelectorAll('#menu-overlay');
+        existingOverlays.forEach(overlay => {
+            if (overlay.parentNode) {
+                overlay.parentNode.removeChild(overlay);
+            }
+        });
     }
     
     updateUI() {
@@ -211,11 +324,6 @@ class GameEngine {
                     1000
                 );
             }
-        }
-        
-        // NEW: Update menu status in UI
-        if (this.menuSystem.isMenuVisible()) {
-            // Could add menu-specific UI updates here if needed
         }
     }
 }

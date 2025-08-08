@@ -1,15 +1,15 @@
-// === FIXED FOG OF WAR SYSTEM ===
+// === DAY/NIGHT FOG OF WAR SYSTEM ===
 // File: src/systems/fog-of-war-system.js
-// COMPLETE REPLACEMENT - Fixed grass dimming issue
+// COMPLETE REPLACEMENT - Now supports day/night lighting
 
 class FogOfWarSystem {
     constructor() {
         // Fog of war settings
         this.enabled = true;
-        this.visionRadius = 3;
-        this.forwardVisionRange = 12;
+        this.visionRadius = 4;
+        this.forwardVisionRange = 15;
         this.exploredRadius = 2;
-        this.coneAngle = 150;
+        this.coneAngle = 160;
         
         // Player facing direction
         this.playerFacing = { x: 0, y: -1 };
@@ -17,7 +17,10 @@ class FogOfWarSystem {
         // Track explored areas
         this.exploredAreas = new Set();
         
-        // Terrain types for fog display
+        // NEW: Time of day system integration
+        this.timeOfDaySystem = null;
+        
+        // Terrain types for fog display (will be enhanced with time-based variants)
         this.fogTerrain = { symbol: '▓', className: 'terrain-fog', name: 'Unknown' };
         
         // Reference to terrain system for line of sight blocking
@@ -27,6 +30,22 @@ class FogOfWarSystem {
     // Method to set terrain system reference
     setTerrainSystem(terrainSystem) {
         this.terrainSystem = terrainSystem;
+    }
+    
+    // NEW: Set time of day system reference
+    setTimeOfDaySystem(timeOfDaySystem) {
+        this.timeOfDaySystem = timeOfDaySystem;
+        this.updateVisionForTimeOfDay();
+    }
+    
+    // NEW: Update vision settings based on time of day
+    updateVisionForTimeOfDay() {
+        if (!this.timeOfDaySystem) return;
+        
+        const visionSettings = this.timeOfDaySystem.getCurrentVisionSettings();
+        this.visionRadius = visionSettings.baseVision;
+        this.forwardVisionRange = visionSettings.forwardVision;
+        this.coneAngle = visionSettings.coneAngle;
     }
     
     // Configuration methods
@@ -61,7 +80,7 @@ class FogOfWarSystem {
         }
     }
     
-    // FIXED: Main fog of war application with proper grass handling
+    // ENHANCED: Main fog of war application with day/night support
     applyFogOfWar(x, y, playerX, playerY, terrain) {
         if (!this.enabled) {
             return terrain;
@@ -70,40 +89,80 @@ class FogOfWarSystem {
         const isInVision = this.isInVision(x, y, playerX, playerY);
         const isExplored = this.isExplored(x, y);
         
+        // NEW: Get current lighting conditions
+        const lighting = this.timeOfDaySystem ? 
+            this.timeOfDaySystem.getLightingConditions() : 
+            { lighting: 'day', cssTimeClass: 'time-day' };
+        
         if (!isInVision && !isExplored) {
-            // Completely hidden - show fog
+            // Completely hidden - show time-appropriate fog
             return {
-                ...this.fogTerrain,
+                ...this.getTimeBasedFogTerrain(lighting),
                 terrain: 'fog',
                 feature: null,
                 deer: null,
                 discovered: false
             };
         } else if (!isInVision && isExplored) {
-            // FIXED: Previously explored but not currently visible - show dimmed
-            // Make sure to preserve all terrain properties and just add the explored class
+            // Previously explored but not currently visible - show dimmed with time-based lighting
             return {
                 ...terrain,
-                className: this.addExploredClass(terrain.className)
+                className: this.addTimeBasedExploredClass(terrain.className, lighting)
             };
         }
         
-        // Currently visible - show normally
-        return terrain;
+        // Currently visible - show with time-based lighting
+        return {
+            ...terrain,
+            className: this.addTimeBasedVisibleClass(terrain.className, lighting)
+        };
     }
     
-    // FIXED: Helper method to properly add explored class
-    addExploredClass(originalClassName) {
+    // NEW: Get fog terrain appearance based on time of day
+    getTimeBasedFogTerrain(lighting) {
+        const timeClass = lighting.cssTimeClass || 'time-day';
+        
+        return {
+            symbol: this.fogTerrain.symbol,
+            className: `terrain-fog ${timeClass}`,
+            name: this.getFogDescription(lighting.lighting)
+        };
+    }
+    
+    // NEW: Get fog description based on time of day
+    getFogDescription(timeOfDay) {
+        const descriptions = {
+            day: 'Distant haze',
+            dusk: 'Gathering shadows',
+            night: 'Darkness',
+            dawn: 'Morning mist'
+        };
+        return descriptions[timeOfDay] || 'Unknown';
+    }
+    
+    // NEW: Add time-based explored class
+    addTimeBasedExploredClass(originalClassName, lighting) {
+        const timeClass = lighting.cssTimeClass || 'time-day';
+        const exploredClass = 'terrain-explored';
+        
         // Don't add if already present
-        if (originalClassName.includes('terrain-explored')) {
+        if (originalClassName.includes(exploredClass)) {
             return originalClassName;
         }
         
-        // Add the explored class at the end
-        return originalClassName + ' terrain-explored';
+        // Add both explored and time-based classes
+        return `${originalClassName} ${exploredClass} ${timeClass}`;
     }
     
-    // Vision calculation
+    // NEW: Add time-based visible class
+    addTimeBasedVisibleClass(originalClassName, lighting) {
+        const timeClass = lighting.cssTimeClass || 'time-day';
+        
+        // Add time-based lighting to visible tiles
+        return `${originalClassName} ${timeClass}`;
+    }
+    
+    // Vision calculation (unchanged)
     isInVision(x, y, playerX, playerY) {
         try {
             const dx = x - playerX;
@@ -139,10 +198,9 @@ class FogOfWarSystem {
         }
     }
     
-    // Line of sight calculation
+    // Line of sight calculation (unchanged)
     hasLineOfSight(fromX, fromY, toX, toY) {
         try {
-            // Simple line of sight using Bresenham's line algorithm
             const dx = Math.abs(toX - fromX);
             const dy = Math.abs(toY - fromY);
             const x0 = fromX;
@@ -156,16 +214,13 @@ class FogOfWarSystem {
             let y = y0;
             
             for (let i = 0; i < n; i++) {
-                // Check if we've reached the target position
                 if (x === toX && y === toY) {
-                    return true; // We can see the target tile
+                    return true;
                 }
                 
-                // Skip the starting position for blocking checks
                 if (i > 0) {
-                    // Check if trees block line of sight
                     if (this.isPositionBlocking(x, y)) {
-                        return false; // Vision is blocked by a tree
+                        return false;
                     }
                 }
                 
@@ -178,23 +233,21 @@ class FogOfWarSystem {
                 }
             }
             
-            return true; // Clear line of sight
+            return true;
         } catch (error) {
             console.warn("Error calculating line of sight:", error);
             return false;
         }
     }
     
-    // Check if a position blocks line of sight
+    // Check if a position blocks line of sight (unchanged)
     isPositionBlocking(x, y) {
         try {
             if (!this.terrainSystem) return false;
             
-            // Check if there's a tree feature that blocks vision
             const feature = this.terrainSystem.getFeatureAt(x, y);
             
             if (feature) {
-                // Both tree trunks AND tree canopy block line of sight
                 if (feature.type === 'tree_trunk' || feature.type === 'tree_canopy') {
                     return true;
                 }
@@ -207,10 +260,9 @@ class FogOfWarSystem {
         }
     }
     
-    // FIXED: Exploration management with better tracking
+    // Exploration management (unchanged)
     updateExploration(playerX, playerY) {
         try {
-            // Mark tiles in the small exploration radius around player
             for (let dx = -this.exploredRadius; dx <= this.exploredRadius; dx++) {
                 for (let dy = -this.exploredRadius; dy <= this.exploredRadius; dy++) {
                     const x = playerX + dx;
@@ -223,7 +275,6 @@ class FogOfWarSystem {
                 }
             }
             
-            // Mark all currently visible tiles as explored
             const maxVisionRange = Math.max(this.visionRadius, this.forwardVisionRange);
             
             for (let dx = -maxVisionRange; dx <= maxVisionRange; dx++) {
@@ -249,7 +300,7 @@ class FogOfWarSystem {
         this.exploredAreas.clear();
     }
     
-    // Player facing utilities
+    // Player facing utilities (unchanged)
     getPlayerFacingAngle() {
         return Math.atan2(this.playerFacing.y, this.playerFacing.x);
     }
@@ -267,8 +318,36 @@ class FogOfWarSystem {
         return 'Unknown';
     }
     
-    // Status information
+    // NEW: Time of day controls
+    advanceTimeOfDay() {
+        if (this.timeOfDaySystem) {
+            const advanced = this.timeOfDaySystem.advanceTime();
+            if (advanced) {
+                this.updateVisionForTimeOfDay();
+            }
+            return advanced;
+        }
+        return false;
+    }
+    
+    setTimeOfDay(timeOfDay) {
+        if (this.timeOfDaySystem) {
+            const success = this.timeOfDaySystem.setTimeOfDay(timeOfDay);
+            if (success) {
+                this.updateVisionForTimeOfDay();
+            }
+            return success;
+        }
+        return false;
+    }
+    
+    // ENHANCED: Status information with time of day
     getStatus() {
+        const timeStatus = this.timeOfDaySystem ? this.timeOfDaySystem.getStatus() : {
+            timeOfDay: 'day',
+            description: 'No time system'
+        };
+        
         return {
             enabled: this.enabled,
             visionRadius: this.visionRadius,
@@ -277,7 +356,11 @@ class FogOfWarSystem {
             exploredRadius: this.exploredRadius,
             exploredCount: this.exploredAreas.size,
             facing: this.getFacingDirectionName(),
-            facingVector: this.playerFacing
+            facingVector: this.playerFacing,
+            // NEW: Time of day info
+            timeOfDay: timeStatus.timeOfDay,
+            timeDescription: timeStatus.description,
+            isTransitioning: timeStatus.isTransitioning || false
         };
     }
 }

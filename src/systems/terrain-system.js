@@ -1,6 +1,6 @@
-// === CORRECTED TERRAIN SYSTEM (MAIN CONTROLLER) ===
+// === TERRAIN SYSTEM WITH TIME OF DAY ===
 // File: src/systems/terrain-system.js
-// COMPLETE REPLACEMENT - Fixed system references
+// COMPLETE REPLACEMENT - Now includes time of day support
 
 class TerrainSystem {
     constructor() {
@@ -11,8 +11,12 @@ class TerrainSystem {
         this.deerSystem = new DeerSystem(this);
         this.renderer = new TerrainRenderer(this.getTerrainTypes(), this.getFeatureTypes());
 
-        // Give fog system reference to this terrain system for line of sight blocking
+        // NEW: Initialize time of day system
+        this.timeOfDaySystem = new TimeOfDaySystem();
+
+        // Give systems references to each other
         this.fogSystem.setTerrainSystem(this);
+        this.fogSystem.setTimeOfDaySystem(this.timeOfDaySystem); // NEW
 
         // Initialize world
         this.initializeWorld();
@@ -27,7 +31,7 @@ class TerrainSystem {
             river: { symbol: '~', className: 'terrain-water', name: 'River' },
             lake: { symbol: '▀', className: 'terrain-water', name: 'Lake' },
             
-            // NEW: Rocky terrain types
+            // Rocky terrain types
             rocks: { symbol: '▓', className: 'terrain-rocks', name: 'Rocky Ground' },
             boulders: { symbol: '▒', className: 'terrain-boulders', name: 'Boulder Field' },
             stone: { symbol: '░', className: 'terrain-stone', name: 'Stone Outcrops' },
@@ -73,7 +77,7 @@ class TerrainSystem {
         this.deerSystem.clear();
     }
 
-    // FIXED: Main terrain query method with proper fog of war handling
+    // Main terrain query method with proper fog of war handling
     getTerrainAt(x, y, playerX = null, playerY = null) {
         if (!this.isValidPosition(x, y)) {
             return this.getTerrainTypes().unknown;
@@ -102,8 +106,7 @@ class TerrainSystem {
                 terrain = this.deerSystem.renderDeer(x, y, terrain);
             }
             
-            // FIXED: Apply fog of war LAST, after all other processing
-            // This ensures that fog of war gets the final say on className
+            // Apply fog of war LAST, after all other processing
             if (this.fogSystem.isEnabled() && playerX !== null && playerY !== null) {
                 terrain = this.fogSystem.applyFogOfWar(x, y, playerX, playerY, terrain);
             }
@@ -191,6 +194,35 @@ class TerrainSystem {
         return this.worldSystem.isAtWorldBoundary(x, y);
     }
     
+    // NEW: Time of day controls
+    advanceTimeOfDay() {
+        const success = this.fogSystem.advanceTimeOfDay();
+        if (success) {
+            const status = this.timeOfDaySystem.getStatus();
+            return status.timeOfDay;
+        }
+        return null;
+    }
+    
+    setTimeOfDay(timeOfDay) {
+        const success = this.fogSystem.setTimeOfDay(timeOfDay);
+        if (success) {
+            return timeOfDay;
+        }
+        return null;
+    }
+    
+    getTimeOfDay() {
+        return this.timeOfDaySystem ? this.timeOfDaySystem.getCurrentTimeOfDay() : 'day';
+    }
+    
+    getTimeOfDayStatus() {
+        return this.timeOfDaySystem ? this.timeOfDaySystem.getStatus() : {
+            timeOfDay: 'day',
+            description: 'No time system'
+        };
+    }
+    
     // Fog of War controls (delegate to fog system)
     toggleFogOfWar() {
         return this.fogSystem.toggle();
@@ -212,8 +244,17 @@ class TerrainSystem {
         this.fogSystem.setExploredRadius(radius);
     }
     
+    // ENHANCED: Fog of War status now includes time info
     getFogOfWarStatus() {
-        return this.fogSystem.getStatus();
+        const fogStatus = this.fogSystem.getStatus();
+        const timeStatus = this.getTimeOfDayStatus();
+        
+        return {
+            ...fogStatus,
+            timeOfDay: timeStatus.timeOfDay,
+            timeDescription: timeStatus.description,
+            isTransitioning: timeStatus.isTransitioning || false
+        };
     }
     
     getFacingDirectionName() {
@@ -293,34 +334,36 @@ class TerrainSystem {
             const worldStats = this.worldSystem.getStats();
             const treeStats = this.treeSystem.getStats();
             const deerStats = this.deerSystem.getStats();
+            const timeStatus = this.getTimeOfDayStatus();
             
             console.log("World Statistics:");
             console.log(`- Hills: ${worldStats.hills}`);
             console.log(`- Rivers: ${worldStats.rivers}`);
-            console.log(`- Lakes: ${worldStats.lakes}`);
-            console.log(`- Trees: ${treeStats.treeCount}`);
-            console.log(`- Deer: ${deerStats.deerCount}`);
-        } catch (error) {
-            console.warn("Error logging world stats:", error);
-        }
-    }
-    
-    calibrateDisplay() {
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', () => {
-                this.renderer.calibrateCharacterSize();
-            });
-        } else {
-            this.renderer.calibrateCharacterSize();
-        }
-    }
-    
-    getViewDimensions(gameArea) {
-        return this.renderer.getViewDimensions(gameArea);
-    }
+           console.log(`- Lakes: ${worldStats.lakes}`);
+           console.log(`- Trees: ${treeStats.treeCount}`);
+           console.log(`- Deer: ${deerStats.deerCount}`);
+           console.log(`- Time of Day: ${timeStatus.timeOfDay} (${timeStatus.description})`);
+       } catch (error) {
+           console.warn("Error logging world stats:", error);
+       }
+   }
+   
+   calibrateDisplay() {
+       if (document.readyState === 'loading') {
+           document.addEventListener('DOMContentLoaded', () => {
+               this.renderer.calibrateCharacterSize();
+           });
+       } else {
+           this.renderer.calibrateCharacterSize();
+       }
+   }
+   
+   getViewDimensions(gameArea) {
+       return this.renderer.getViewDimensions(gameArea);
+   }
 }
 
 // Make TerrainSystem globally available
 if (typeof window !== 'undefined') {
-    window.TerrainSystem = TerrainSystem;
+   window.TerrainSystem = TerrainSystem;
 }

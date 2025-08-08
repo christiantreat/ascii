@@ -3,20 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Reactive Deer AI Game - Modular Terrain System</title>
+    <title>Reactive Deer AI Game - Day/Night Cycle System</title>
     <link rel="stylesheet" href="styles/game.css">
 </head>
 <body>
-    <div id="gameArea">Loading Modular Terrain System...</div>
+    <div id="gameArea">Loading Day/Night Terrain System...</div>
     
     <div class="instructions fade-out">
-    <strong>🎮 REACTIVE DEER AI GAME - GEOLOGICAL TERRAIN SYSTEM</strong><br>
-    <strong>Movement:</strong> Arrow Keys/WASD • <strong>Menu:</strong> M key • <strong>Fog:</strong> F • <strong>Vision:</strong> +/-<br>
+    <strong>🎮 REACTIVE DEER AI GAME - DAY/NIGHT CYCLE SYSTEM</strong><br>
+    <strong>Movement:</strong> Arrow Keys/WASD • <strong>Menu:</strong> M key • <strong>Fog:</strong> F<br>
+    <strong>🌅 TIME OF DAY:</strong> N (advance time) • F1-F4 (day/dusk/night/dawn) • J (time status)<br>
     <strong>🦌 DEER REACT INSTANTLY:</strong> Watch deer flee the moment you move toward them!<br>
-    <strong>📋 NEW MENU SYSTEM:</strong> Press M to open the game menu with all controls organized!<br>
     <strong>🏔️ GEOLOGICAL TERRAIN:</strong> 7 (mountains) • 8 (hills) • 9 (plains) • 0 (volcanic)<br>
-    <strong>Quick Controls:</strong> T (terrain+geology) • G (geology details) • Ctrl+R (regenerate)<br>
-    <em>Now with a pauseable menu system - game freezes while menu is open!</em>
+    <strong>🌞🌙 DYNAMIC LIGHTING:</strong> Vision range changes with time! Day=long, Night=short<br>
+    <em>Experience atmospheric day/night cycles with realistic fog of war!</em>
     </div>
         
     <div class="status">
@@ -55,7 +55,8 @@
             treeSystem: false,
             deerSystem: false,
             terrainSystem: false,
-            menuSystem: false
+            menuSystem: false,
+            timeSystem: false  // NEW
         };
 
         function updateLoadingStatus(moduleName) {
@@ -80,7 +81,7 @@
     </script>
 
     <!-- STEP 1: Core command system (no dependencies) -->
-    <!-- NEW: Load configuration FIRST before any other systems -->
+    <!-- Load configuration FIRST before any other systems -->
     <script src="src/config/terrain-config.js"></script>
     <script src="src/commands/command-base.js"></script>
     <script src="src/commands/move-command.js"></script>
@@ -99,6 +100,8 @@
     
     <!-- STEP 4: Specialized subsystems -->
     <script src="src/systems/world-system.js" onload="updateLoadingStatus('worldSystem')"></script>
+    <!-- NEW: Load time system BEFORE fog system since fog depends on it -->
+    <script src="src/systems/time-of-day-system.js" onload="updateLoadingStatus('timeSystem')"></script>
     <script src="src/systems/fog-of-war-system.js" onload="updateLoadingStatus('fogSystem')"></script>
     <script src="src/systems/tree-system.js" onload="updateLoadingStatus('treeSystem')"></script>
     
@@ -132,7 +135,8 @@
                 'TERRAIN_CONFIG': window.TERRAIN_CONFIG,
                 'MenuSystem': window.MenuSystem,
                 'TerrainSystem': window.TerrainSystem,
-                'GameEngine': window.GameEngine
+                'GameEngine': window.GameEngine,
+                'TimeOfDaySystem': window.TimeOfDaySystem  // NEW
             };
             
             // Check classes that might be defined but not global
@@ -142,7 +146,8 @@
                 'DeerSystem': typeof DeerSystem !== 'undefined',
                 'TreeSystem': typeof TreeSystem !== 'undefined',
                 'WorldSystem': typeof WorldSystem !== 'undefined',
-                'FogOfWarSystem': typeof FogOfWarSystem !== 'undefined'
+                'FogOfWarSystem': typeof FogOfWarSystem !== 'undefined',
+                'TimeOfDaySystem': typeof TimeOfDaySystem !== 'undefined'  // NEW
             };
             
             console.log("Global classes:", globalClasses);
@@ -172,11 +177,11 @@
                 console.log("✅ All required classes loaded successfully");
             }
             
-            // Special check for MenuSystem availability to GameEngine
-            if (typeof window.MenuSystem !== 'undefined') {
-                console.log("✅ MenuSystem is globally available for GameEngine");
+            // Special check for day/night system
+            if (typeof TimeOfDaySystem !== 'undefined') {
+                console.log("🌅 Time of Day system ready!");
             } else {
-                console.error("❌ MenuSystem is NOT globally available - this will cause the error");
+                console.error("❌ TimeOfDaySystem not available");
             }
         });
     </script>

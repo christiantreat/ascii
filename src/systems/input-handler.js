@@ -1,6 +1,6 @@
-// === UPDATED INPUT HANDLER WITH MENU SUPPORT ===
+// === ENHANCED INPUT HANDLER WITH TIME OF DAY CONTROLS ===
 // File: src/systems/input-handler.js
-// COMPLETE REPLACEMENT with menu system integration
+// COMPLETE REPLACEMENT - Now includes day/night controls
 
 class InputHandler {
     constructor(game) {
@@ -10,7 +10,7 @@ class InputHandler {
     
     setupKeyboardInput() {
         document.addEventListener('keydown', (e) => {
-            // NEW: Check if menu is visible and handle menu input first
+            // Check if menu is visible and handle menu input first
             if (this.game.menuSystem.isMenuVisible()) {
                 if (this.handleMenuInput(e)) {
                     return; // Menu handled the input, don't process further
@@ -30,7 +30,7 @@ class InputHandler {
         });
     }
     
-    // NEW: Menu input handling
+    // Menu input handling
     handleMenuInput(e) {
         // Let the menu system handle the input
         const handled = this.game.menuSystem.handleMenuInput(e.key);
@@ -43,11 +43,68 @@ class InputHandler {
     }
     
     handleSpecialInput(e) {
-        // NEW: Menu toggle key
+        // Menu toggle key
         if (e.key === 'm' || e.key === 'M') {
             e.preventDefault();
             this.game.menuSystem.handleMenuKey();
             this.game.render();
+            return true;
+        }
+        
+        // NEW: Time of day controls
+        if (e.key === 'n' || e.key === 'N') {
+            e.preventDefault();
+            const newTime = this.game.terrainSystem.advanceTimeOfDay();
+            if (newTime) {
+                const status = this.game.terrainSystem.getTimeOfDayStatus();
+                this.game.uiController.showMessage(
+                    `Time: ${newTime.toUpperCase()} - ${status.description}`, 
+                    3000
+                );
+                this.game.render();
+            }
+            return true;
+        }
+        
+        // NEW: Quick time set controls
+        if (e.key === 'F1') {
+            e.preventDefault();
+            this.game.terrainSystem.setTimeOfDay('day');
+            this.game.uiController.showMessage('Time set to DAY - Bright daylight, excellent visibility', 2500);
+            this.game.render();
+            return true;
+        }
+        
+        if (e.key === 'F2') {
+            e.preventDefault();
+            this.game.terrainSystem.setTimeOfDay('dusk');
+            this.game.uiController.showMessage('Time set to DUSK - Twilight, vision starting to fade', 2500);
+            this.game.render();
+            return true;
+        }
+        
+        if (e.key === 'F3') {
+            e.preventDefault();
+            this.game.terrainSystem.setTimeOfDay('night');
+            this.game.uiController.showMessage('Time set to NIGHT - Dark, limited torch-like vision', 2500);
+            this.game.render();
+            return true;
+        }
+        
+        if (e.key === 'F4') {
+            e.preventDefault();
+            this.game.terrainSystem.setTimeOfDay('dawn');
+            this.game.uiController.showMessage('Time set to DAWN - Early morning, vision improving', 2500);
+            this.game.render();
+            return true;
+        }
+        
+        // NEW: Show time/vision status
+        if (e.key === 'j' || e.key === 'J') {
+            e.preventDefault();
+            const status = this.game.terrainSystem.getFogOfWarStatus();
+            const message = `${status.timeOfDay.toUpperCase()}: ${status.timeDescription} | Vision: ${status.visionRadius}+${status.forwardVisionRange} (${status.coneAngle}°)`;
+            this.game.uiController.showMessage(message, 4000);
             return true;
         }
         
@@ -75,7 +132,7 @@ class InputHandler {
         // Vision controls
         if (e.key === ']') {
             e.preventDefault();
-            const currentRadius = this.game.terrainSystem.exploredRadius;
+            const currentRadius = this.game.terrainSystem.fogSystem.exploredRadius;
             this.game.terrainSystem.setExploredRadius(currentRadius + 1);
             this.game.uiController.showMessage(`Exploration radius: ${currentRadius + 1}`, 1500);
             this.game.render();
@@ -181,299 +238,299 @@ class InputHandler {
             e.preventDefault();
             if (this.game.terrainSystem.deerSystem) {
                 this.game.terrainSystem.deerSystem.scareAllDeer(
-                    this.game.player.x, 
+                    this.game.player.x,
                     this.game.player.y
-                );
-                this.game.uiController.showMessage('All deer scared! Watch them flee!', 2000);
-                this.game.render();
-            }
-            return true;
-        }
-        
-        // Calm all deer
-        if (e.key === 'C' && e.shiftKey) {
-            e.preventDefault();
-            if (this.game.terrainSystem.deerSystem) {
-                this.game.terrainSystem.deerSystem.calmAllDeer();
-                this.game.uiController.showMessage('All deer calmed down', 2000);
-                this.game.render();
-            }
-            return true;
-        }
-        
-        // Show deer behavior stats
-        if (e.key === 'B' && e.shiftKey) {
-            e.preventDefault();
-            if (this.game.terrainSystem.deerSystem) {
-                const stats = this.game.terrainSystem.deerSystem.getDeerBehaviorStats();
-                const message = `Deer Stats: ${stats.totalDeer} total | Avg dist: ${stats.averageDistanceFromPlayer} | W:${stats.states.wandering} A:${stats.states.alert} F:${stats.states.fleeing}`;
-                this.game.uiController.showMessage(message, 4000);
-            }
-            return true;
-        }
-        
-        // Respawn deer
-        if (e.key === 'R' && e.shiftKey) {
-            e.preventDefault();
-            if (this.game.terrainSystem.deerSystem) {
-                this.game.terrainSystem.deerSystem.respawnDeer();
-                this.game.uiController.showMessage('Deer respawned in new locations', 2000);
-                this.game.render();
-            }
-            return true;
-        }
-        
-        // === ORIGINAL TERRAIN CONTROLS ===
-        
-        // Quick terrain configuration (original)
-        if (e.key === '1') {
-            e.preventDefault();
-            this.game.terrainSystem.quickConfigElevation('flat').regenerateWorld();
-            this.game.uiController.showMessage('Terrain: Flat plains', 2000);
-            this.game.render();
-            return true;
-        }
-        
-        if (e.key === '2') {
-            e.preventDefault();
-            this.game.terrainSystem.quickConfigElevation('rolling').regenerateWorld();
-            this.game.uiController.showMessage('Terrain: Rolling hills', 2000);
-            this.game.render();
-            return true;
-        }
-        
-        if (e.key === '3') {
-            e.preventDefault();
-            this.game.terrainSystem.quickConfigElevation('hilly').regenerateWorld();
-            this.game.uiController.showMessage('Terrain: Hilly', 2000);
-            this.game.render();
-            return true;
-        }
-        
-        // Water level controls (original)
-        if (e.key === '4') {
-            e.preventDefault();
-            this.game.terrainSystem.quickConfigWater('dry').regenerateWorld();
-            this.game.uiController.showMessage('Water: Dry landscape', 2000);
-            this.game.render();
-            return true;
-        }
-        
-        if (e.key === '5') {
-            e.preventDefault();
-            this.game.terrainSystem.quickConfigWater('normal').regenerateWorld();
-            this.game.uiController.showMessage('Water: Normal amount', 2000);
-            this.game.render();
-            return true;
-        }
-        
-        if (e.key === '6') {
-            e.preventDefault();
-            this.game.terrainSystem.quickConfigWater('wet').regenerateWorld();
-            this.game.uiController.showMessage('Water: Lots of water', 2000);
-            this.game.render();
-            return true;
-        }
-        
-        // === GEOLOGICAL TERRAIN PRESETS ===
-        
-        if (e.key === '7') {
-            e.preventDefault();
-            this.game.terrainSystem.worldSystem.worldGenerator.createMountainousWorld();
-            this.game.terrainSystem.regenerateWorld();
-            this.game.uiController.showMessage('Geology: Mountainous terrain', 2000);
-            this.game.render();
-            return true;
-        }
-        
-        if (e.key === '8') {
-            e.preventDefault();
-            this.game.terrainSystem.worldSystem.worldGenerator.createRollingHillsWorld();
-            this.game.terrainSystem.regenerateWorld();
-            this.game.uiController.showMessage('Geology: Rolling hills', 2000);
-            this.game.render();
-            return true;
-        }
-        
-        if (e.key === '9') {
-            e.preventDefault();
-            this.game.terrainSystem.worldSystem.worldGenerator.createFlatPlainsWorld();
-            this.game.terrainSystem.regenerateWorld();
-            this.game.uiController.showMessage('Geology: Flat plains', 2000);
-            this.game.render();
-            return true;
-        }
-        
-        if (e.key === '0') {
-            e.preventDefault();
-            this.game.terrainSystem.worldSystem.worldGenerator.createVolcanicWorld();
-            this.game.terrainSystem.regenerateWorld();
-            this.game.uiController.showMessage('Geology: Volcanic terrain', 2000);
-            this.game.render();
-            return true;
-        }
-        
-        // Module controls (original)
-        if (e.key === 'e' && (e.ctrlKey || e.metaKey)) {
-            e.preventDefault();
-            this.game.terrainSystem.regenerateModule('elevation');
-            this.game.uiController.showMessage('Hills regenerated', 1500);
-            this.game.render();
-            return true;
-        }
-        
-        if (e.key === 'w' && (e.ctrlKey || e.metaKey)) {
-            e.preventDefault();
-            this.game.terrainSystem.regenerateModule('hydrology');
-            this.game.uiController.showMessage('Water systems regenerated', 1500);
-            this.game.render();
-            return true;
-        }
-        
-        // NEW: Geology module control
-        if (e.key === 'g' && (e.ctrlKey || e.metaKey)) {
-            e.preventDefault();
-            this.game.terrainSystem.regenerateModule('geology');
-            this.game.uiController.showMessage('Geology regenerated', 1500);
-            this.game.render();
-            return true;
-        }
-        
-        // Module status (enhanced)
-        if (e.key === 'm' && (e.ctrlKey || e.metaKey)) {
-            e.preventDefault();
-            const status = this.game.terrainSystem.getModuleStatus();
-            const moduleNames = status.map(m => `${m.name}: ${m.enabled ? 'ON' : 'OFF'}`).join(' | ');
-            this.game.uiController.showMessage(`Modules: ${moduleNames}`, 4000);
-            return true;
-        }
-        
-        // Terrain statistics (original)
-        if (e.key === 's' && (e.ctrlKey || e.metaKey)) {
-            e.preventDefault();
-            const stats = this.game.terrainSystem.getTerrainStatistics();
-            const top3 = Object.entries(stats.percentages)
-                .sort(([,a], [,b]) => parseFloat(b) - parseFloat(a))
-                .slice(0, 3)
-                .map(([terrain, percent]) => `${terrain}: ${percent}%`)
-                .join(' | ');
-            this.game.uiController.showMessage(`Terrain: ${top3}`, 4000);
-            return true;
-        }
-        
-        // === ENHANCED TERRAIN ANALYSIS (with geology) ===
-        
-        if (e.key === 't' || e.key === 'T') {
-            e.preventDefault();
-            const analysis = this.game.terrainSystem.worldSystem.worldGenerator.analyzePosition(
-                this.game.player.x, 
-                this.game.player.y
-            );
-            
-            // Show geological information
-            const message = `Terrain: ${analysis.terrain} | Rock: ${analysis.geology.rockType} | Soil: ${analysis.geology.soilQuality.toFixed(2)} | Elev: ${analysis.elevation.toFixed(2)} | Settlement: ${analysis.suitability.settlement.toFixed(2)}`;
-            this.game.uiController.showMessage(message, 5000);
-            return true;
-        }
-        
-        // NEW: Geological details
-        if (e.key === 'G' && !e.shiftKey) {
-            e.preventDefault();
-            const analysis = this.game.terrainSystem.worldSystem.worldGenerator.analyzePosition(
-                this.game.player.x, 
-                this.game.player.y
-            );
-            
-            const suitableFor = analysis.geology.suitable_for.join(', ') || 'general use';
-            const message = `Geology: ${analysis.geology.rockType} rock, soil quality ${analysis.geology.soilQuality.toFixed(2)} | Good for: ${suitableFor}`;
-            this.game.uiController.showMessage(message, 4000);
-            return true;
-        }
-        
-        // NEW: Show geological statistics
-        if (e.key === 'L' && (e.ctrlKey || e.metaKey)) {
-            e.preventDefault();
-            const geologyStats = this.game.terrainSystem.worldSystem.worldGenerator.getGeologyStats();
-            const rockTypes = Object.entries(geologyStats.rockDistribution)
-                .map(([rock, count]) => `${rock}: ${count}`)
-                .join(' | ');
-            this.game.uiController.showMessage(`Geology: ${geologyStats.formations} formations | ${rockTypes}`, 4000);
-            return true;
-        }
-        
-        // Regenerate world (original)
-        if (e.key === 'r' && (e.ctrlKey || e.metaKey)) {
-            e.preventDefault();
-            this.game.terrainSystem.regenerateWorld();
-            this.game.uiController.showMessage('World regenerated!', 2000);
-            this.game.render();
-            return true;
-        }
-        
-        // Toggle instructions (original)
-        if (e.key === 'h' || e.key === 'H') {
-            e.preventDefault();
-            this.game.uiController.toggleInstructions();
-            return true;
-        }
-        
-        return false;
-    }
-    
-    handleUndoRedoInput(e) {
-        // Only process if Ctrl or Cmd is held
-        if (!(e.ctrlKey || e.metaKey)) return false;
-        
-        // Prevent conflict with terrain controls
-        if (e.key === 'z' && !e.shiftKey) {
-            if (!['e', 'w', 'g', 'm', 's', 'r', 'l'].includes(e.key)) {
-                e.preventDefault();
-                this.game.undo();
-                return true;
-            }
-        }
-        
-        // Handle both Ctrl+Y and Ctrl+Shift+Z for redo
-        if (e.key === 'y' || (e.key === 'z' && e.shiftKey)) {
-            e.preventDefault();
-            this.game.redo();
-            return true;
-        }
-        
-        return false;
-    }
-    
-    handleMovementInput(e) {
-        const movementMap = {
-            'ArrowUp': { x: 0, y: -1 },
-            'ArrowDown': { x: 0, y: 1 },
-            'ArrowLeft': { x: -1, y: 0 },
-            'ArrowRight': { x: 1, y: 0 },
-            // WASD keys - but only if no modifiers are pressed
-            'w': { x: 0, y: -1 },
-            'W': { x: 0, y: -1 },
-            's': { x: 0, y: 1 },
-            'S': { x: 0, y: 1 },
-            'a': { x: -1, y: 0 },
-            'A': { x: -1, y: 0 },
-            'd': { x: 1, y: 0 },
-            'D': { x: 1, y: 0 }
-        };
-        
-        // Only allow movement if no modifier keys are pressed
-        if (e.ctrlKey || e.metaKey || e.altKey || e.shiftKey) {
-            return; // Don't handle movement if modifier keys are pressed
-        }
-        
-        const movement = movementMap[e.key];
-        if (movement) {
-            e.preventDefault(); // Prevent page scrolling with arrow keys
-            this.game.executeCommand('move', movement);
-        }
-    }
+               );
+               this.game.uiController.showMessage('All deer scared! Watch them flee!', 2000);
+               this.game.render();
+           }
+           return true;
+       }
+       
+       // Calm all deer
+       if (e.key === 'C' && e.shiftKey) {
+           e.preventDefault();
+           if (this.game.terrainSystem.deerSystem) {
+               this.game.terrainSystem.deerSystem.calmAllDeer();
+               this.game.uiController.showMessage('All deer calmed down', 2000);
+               this.game.render();
+           }
+           return true;
+       }
+       
+       // Show deer behavior stats
+       if (e.key === 'B' && e.shiftKey) {
+           e.preventDefault();
+           if (this.game.terrainSystem.deerSystem) {
+               const stats = this.game.terrainSystem.deerSystem.getDeerBehaviorStats();
+               const message = `Deer Stats: ${stats.totalDeer} total | Avg dist: ${stats.averageDistanceFromPlayer} | W:${stats.states.wandering} A:${stats.states.alert} F:${stats.states.fleeing}`;
+               this.game.uiController.showMessage(message, 4000);
+           }
+           return true;
+       }
+       
+       // Respawn deer
+       if (e.key === 'R' && e.shiftKey) {
+           e.preventDefault();
+           if (this.game.terrainSystem.deerSystem) {
+               this.game.terrainSystem.deerSystem.respawnDeer();
+               this.game.uiController.showMessage('Deer respawned in new locations', 2000);
+               this.game.render();
+           }
+           return true;
+       }
+       
+       // === TERRAIN CONTROLS ===
+       
+       // Quick terrain configuration (original)
+       if (e.key === '1') {
+           e.preventDefault();
+           this.game.terrainSystem.quickConfigElevation('flat').regenerateWorld();
+           this.game.uiController.showMessage('Terrain: Flat plains', 2000);
+           this.game.render();
+           return true;
+       }
+       
+       if (e.key === '2') {
+           e.preventDefault();
+           this.game.terrainSystem.quickConfigElevation('rolling').regenerateWorld();
+           this.game.uiController.showMessage('Terrain: Rolling hills', 2000);
+           this.game.render();
+           return true;
+       }
+       
+       if (e.key === '3') {
+           e.preventDefault();
+           this.game.terrainSystem.quickConfigElevation('hilly').regenerateWorld();
+           this.game.uiController.showMessage('Terrain: Hilly', 2000);
+           this.game.render();
+           return true;
+       }
+       
+       // Water level controls (original)
+       if (e.key === '4') {
+           e.preventDefault();
+           this.game.terrainSystem.quickConfigWater('dry').regenerateWorld();
+           this.game.uiController.showMessage('Water: Dry landscape', 2000);
+           this.game.render();
+           return true;
+       }
+       
+       if (e.key === '5') {
+           e.preventDefault();
+           this.game.terrainSystem.quickConfigWater('normal').regenerateWorld();
+           this.game.uiController.showMessage('Water: Normal amount', 2000);
+           this.game.render();
+           return true;
+       }
+       
+       if (e.key === '6') {
+           e.preventDefault();
+           this.game.terrainSystem.quickConfigWater('wet').regenerateWorld();
+           this.game.uiController.showMessage('Water: Lots of water', 2000);
+           this.game.render();
+           return true;
+       }
+       
+       // === GEOLOGICAL TERRAIN PRESETS ===
+       
+       if (e.key === '7') {
+           e.preventDefault();
+           this.game.terrainSystem.worldSystem.worldGenerator.createMountainousWorld();
+           this.game.terrainSystem.regenerateWorld();
+           this.game.uiController.showMessage('Geology: Mountainous terrain', 2000);
+           this.game.render();
+           return true;
+       }
+       
+       if (e.key === '8') {
+           e.preventDefault();
+           this.game.terrainSystem.worldSystem.worldGenerator.createRollingHillsWorld();
+           this.game.terrainSystem.regenerateWorld();
+           this.game.uiController.showMessage('Geology: Rolling hills', 2000);
+           this.game.render();
+           return true;
+       }
+       
+       if (e.key === '9') {
+           e.preventDefault();
+           this.game.terrainSystem.worldSystem.worldGenerator.createFlatPlainsWorld();
+           this.game.terrainSystem.regenerateWorld();
+           this.game.uiController.showMessage('Geology: Flat plains', 2000);
+           this.game.render();
+           return true;
+       }
+       
+       if (e.key === '0') {
+           e.preventDefault();
+           this.game.terrainSystem.worldSystem.worldGenerator.createVolcanicWorld();
+           this.game.terrainSystem.regenerateWorld();
+           this.game.uiController.showMessage('Geology: Volcanic terrain', 2000);
+           this.game.render();
+           return true;
+       }
+       
+       // Module controls (original)
+       if (e.key === 'e' && (e.ctrlKey || e.metaKey)) {
+           e.preventDefault();
+           this.game.terrainSystem.regenerateModule('elevation');
+           this.game.uiController.showMessage('Hills regenerated', 1500);
+           this.game.render();
+           return true;
+       }
+       
+       if (e.key === 'w' && (e.ctrlKey || e.metaKey)) {
+           e.preventDefault();
+           this.game.terrainSystem.regenerateModule('hydrology');
+           this.game.uiController.showMessage('Water systems regenerated', 1500);
+           this.game.render();
+           return true;
+       }
+       
+       // Geology module control
+       if (e.key === 'g' && (e.ctrlKey || e.metaKey)) {
+           e.preventDefault();
+           this.game.terrainSystem.regenerateModule('geology');
+           this.game.uiController.showMessage('Geology regenerated', 1500);
+           this.game.render();
+           return true;
+       }
+       
+       // Module status (enhanced)
+       if (e.key === 'm' && (e.ctrlKey || e.metaKey)) {
+           e.preventDefault();
+           const status = this.game.terrainSystem.getModuleStatus();
+           const moduleNames = status.map(m => `${m.name}: ${m.enabled ? 'ON' : 'OFF'}`).join(' | ');
+           this.game.uiController.showMessage(`Modules: ${moduleNames}`, 4000);
+           return true;
+       }
+       
+       // Terrain statistics (original)
+       if (e.key === 's' && (e.ctrlKey || e.metaKey)) {
+           e.preventDefault();
+           const stats = this.game.terrainSystem.getTerrainStatistics();
+           const top3 = Object.entries(stats.percentages)
+               .sort(([,a], [,b]) => parseFloat(b) - parseFloat(a))
+               .slice(0, 3)
+               .map(([terrain, percent]) => `${terrain}: ${percent}%`)
+               .join(' | ');
+           this.game.uiController.showMessage(`Terrain: ${top3}`, 4000);
+           return true;
+       }
+       
+       // === ENHANCED TERRAIN ANALYSIS (with geology) ===
+       
+       if (e.key === 't' || e.key === 'T') {
+           e.preventDefault();
+           const analysis = this.game.terrainSystem.worldSystem.worldGenerator.analyzePosition(
+               this.game.player.x, 
+               this.game.player.y
+           );
+           
+           // Show geological information
+           const message = `Terrain: ${analysis.terrain} | Rock: ${analysis.geology.rockType} | Soil: ${analysis.geology.soilQuality.toFixed(2)} | Elev: ${analysis.elevation.toFixed(2)} | Settlement: ${analysis.suitability.settlement.toFixed(2)}`;
+           this.game.uiController.showMessage(message, 5000);
+           return true;
+       }
+       
+       // Geological details
+       if (e.key === 'G' && !e.shiftKey) {
+           e.preventDefault();
+           const analysis = this.game.terrainSystem.worldSystem.worldGenerator.analyzePosition(
+               this.game.player.x, 
+               this.game.player.y
+           );
+           
+           const suitableFor = analysis.geology.suitable_for.join(', ') || 'general use';
+           const message = `Geology: ${analysis.geology.rockType} rock, soil quality ${analysis.geology.soilQuality.toFixed(2)} | Good for: ${suitableFor}`;
+           this.game.uiController.showMessage(message, 4000);
+           return true;
+       }
+       
+       // Show geological statistics
+       if (e.key === 'L' && (e.ctrlKey || e.metaKey)) {
+           e.preventDefault();
+           const geologyStats = this.game.terrainSystem.worldSystem.worldGenerator.getGeologyStats();
+           const rockTypes = Object.entries(geologyStats.rockDistribution)
+               .map(([rock, count]) => `${rock}: ${count}`)
+               .join(' | ');
+           this.game.uiController.showMessage(`Geology: ${geologyStats.formations} formations | ${rockTypes}`, 4000);
+           return true;
+       }
+       
+       // Regenerate world (original)
+       if (e.key === 'r' && (e.ctrlKey || e.metaKey)) {
+           e.preventDefault();
+           this.game.terrainSystem.regenerateWorld();
+           this.game.uiController.showMessage('World regenerated!', 2000);
+           this.game.render();
+           return true;
+       }
+       
+       // Toggle instructions (original)
+       if (e.key === 'h' || e.key === 'H') {
+           e.preventDefault();
+           this.game.uiController.toggleInstructions();
+           return true;
+       }
+       
+       return false;
+   }
+   
+   handleUndoRedoInput(e) {
+       // Only process if Ctrl or Cmd is held
+       if (!(e.ctrlKey || e.metaKey)) return false;
+       
+       // Prevent conflict with terrain controls
+       if (e.key === 'z' && !e.shiftKey) {
+           if (!['e', 'w', 'g', 'm', 's', 'r', 'l'].includes(e.key)) {
+               e.preventDefault();
+               this.game.undo();
+               return true;
+           }
+       }
+       
+       // Handle both Ctrl+Y and Ctrl+Shift+Z for redo
+       if (e.key === 'y' || (e.key === 'z' && e.shiftKey)) {
+           e.preventDefault();
+           this.game.redo();
+           return true;
+       }
+       
+       return false;
+   }
+   
+   handleMovementInput(e) {
+       const movementMap = {
+           'ArrowUp': { x: 0, y: -1 },
+           'ArrowDown': { x: 0, y: 1 },
+           'ArrowLeft': { x: -1, y: 0 },
+           'ArrowRight': { x: 1, y: 0 },
+           // WASD keys - but only if no modifiers are pressed
+           'w': { x: 0, y: -1 },
+           'W': { x: 0, y: -1 },
+           's': { x: 0, y: 1 },
+           'S': { x: 0, y: 1 },
+           'a': { x: -1, y: 0 },
+           'A': { x: -1, y: 0 },
+           'd': { x: 1, y: 0 },
+           'D': { x: 1, y: 0 }
+       };
+       
+       // Only allow movement if no modifier keys are pressed
+       if (e.ctrlKey || e.metaKey || e.altKey || e.shiftKey) {
+           return; // Don't handle movement if modifier keys are pressed
+       }
+       
+       const movement = movementMap[e.key];
+       if (movement) {
+           e.preventDefault(); // Prevent page scrolling with arrow keys
+           this.game.executeCommand('move', movement);
+       }
+   }
 }
 
 // Make InputHandler globally available
 if (typeof window !== 'undefined') {
-    window.InputHandler = InputHandler;
+   window.InputHandler = InputHandler;
 }

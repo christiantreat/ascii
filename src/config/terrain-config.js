@@ -173,7 +173,7 @@ class TerrainConfig {
             // === WATER SYSTEM SETTINGS ===
             hydrology: {
                 springCount: 8,                // Number of water springs
-                springElevationMin: 0.25,      // Springs appear above this elevation
+                springElevationMin: 0.15,      // Springs appear above this elevation
                 springProximityToHardRock: 30, // Springs near hard rock
                 riverStepSize: 2,              // How far rivers move each step
                 maxRiverLength: 100,           // Maximum river length

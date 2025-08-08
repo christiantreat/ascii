@@ -551,3 +551,334 @@ body {
     50% { opacity: 1; transform: translateX(0); }
     100% { opacity: 0; transform: translateX(-20px); }
 }
+
+:root {
+    /* Day colors (bright, saturated) */
+    --day-grass-1: #00e600;
+    --day-grass-2: #00ff00;
+    --day-grass-3: #1aff1a;
+    --day-water: #0080ff;
+    --day-hills: #a0522d;
+    --day-rocks: #696969;
+    --day-stone: #808080;
+    --day-fog: #87ceeb;  /* Sky blue for distant haze */
+    
+    /* Night colors (dark, desaturated) */
+    --night-grass-1: #003300;
+    --night-grass-2: #004400;
+    --night-grass-3: #002200;
+    --night-water: #003366;
+    --night-hills: #2d1810;
+    --night-rocks: #2a2a2a;
+    --night-stone: #333333;
+    --night-fog: #0f0f0f;  /* Very dark for unknown areas */
+    
+    /* Dusk colors (medium, warm-tinted) */
+    --dusk-grass-1: #006600;
+    --dusk-grass-2: #007700;
+    --dusk-grass-3: #005500;
+    --dusk-water: #004080;
+    --dusk-hills: #654321;
+    --dusk-rocks: #4a4a4a;
+    --dusk-stone: #5a5a5a;
+    --dusk-fog: #483d3d;  /* Dusky grey */
+    
+    /* Dawn colors (medium, cool-tinted) */
+    --dawn-grass-1: #009900;
+    --dawn-grass-2: #00aa00;
+    --dawn-grass-3: #008800;
+    --dawn-water: #0066cc;
+    --dawn-hills: #8b6914;
+    --dawn-rocks: #5a5a5a;
+    --dawn-stone: #6a6a6a;
+    --dawn-fog: #6b6b7d;  /* Dawn mist */
+}
+
+/* === DAY TIME LIGHTING === */
+.time-day .terrain-grass-1,
+.time-day.terrain-grass-1 { color: var(--day-grass-1) !important; }
+.time-day .terrain-grass-2,
+.time-day.terrain-grass-2 { color: var(--day-grass-2) !important; }
+.time-day .terrain-grass-3,
+.time-day.terrain-grass-3 { color: var(--day-grass-3) !important; }
+.time-day .terrain-grass-4,
+.time-day.terrain-grass-4 { color: var(--day-grass-1) !important; }
+.time-day .terrain-grass-5,
+.time-day.terrain-grass-5 { color: var(--day-grass-2) !important; }
+.time-day .terrain-grass-6,
+.time-day.terrain-grass-6 { color: var(--day-grass-3) !important; }
+.time-day .terrain-grass-7,
+.time-day.terrain-grass-7 { color: var(--day-grass-1) !important; }
+.time-day .terrain-grass-8,
+.time-day.terrain-grass-8 { color: var(--day-grass-2) !important; }
+
+.time-day .terrain-water,
+.time-day.terrain-water { color: var(--day-water) !important; }
+.time-day .terrain-hills,
+.time-day.terrain-hills { color: var(--day-hills) !important; }
+.time-day .terrain-rocks,
+.time-day.terrain-rocks { color: var(--day-rocks) !important; }
+.time-day .terrain-stone,
+.time-day.terrain-stone { color: var(--day-stone) !important; }
+
+/* Day fog (sky blue haze) */
+.terrain-fog.time-day { color: var(--day-fog) !important; }
+
+/* === DUSK TIME LIGHTING === */
+.time-dusk .terrain-grass-1,
+.time-dusk.terrain-grass-1 { color: var(--dusk-grass-1) !important; }
+.time-dusk .terrain-grass-2,
+.time-dusk.terrain-grass-2 { color: var(--dusk-grass-2) !important; }
+.time-dusk .terrain-grass-3,
+.time-dusk.terrain-grass-3 { color: var(--dusk-grass-3) !important; }
+.time-dusk .terrain-grass-4,
+.time-dusk.terrain-grass-4 { color: var(--dusk-grass-1) !important; }
+.time-dusk .terrain-grass-5,
+.time-dusk.terrain-grass-5 { color: var(--dusk-grass-2) !important; }
+.time-dusk .terrain-grass-6,
+.time-dusk.terrain-grass-6 { color: var(--dusk-grass-3) !important; }
+.time-dusk .terrain-grass-7,
+.time-dusk.terrain-grass-7 { color: var(--dusk-grass-1) !important; }
+.time-dusk .terrain-grass-8,
+.time-dusk.terrain-grass-8 { color: var(--dusk-grass-2) !important; }
+
+.time-dusk .terrain-water,
+.time-dusk.terrain-water { color: var(--dusk-water) !important; }
+.time-dusk .terrain-hills,
+.time-dusk.terrain-hills { color: var(--dusk-hills) !important; }
+.time-dusk .terrain-rocks,
+.time-dusk.terrain-rocks { color: var(--dusk-rocks) !important; }
+.time-dusk .terrain-stone,
+.time-dusk.terrain-stone { color: var(--dusk-stone) !important; }
+
+/* Dusk fog */
+.terrain-fog.time-dusk { color: var(--dusk-fog) !important; }
+
+/* === NIGHT TIME LIGHTING === */
+.time-night .terrain-grass-1,
+.time-night.terrain-grass-1 { color: var(--night-grass-1) !important; }
+.time-night .terrain-grass-2,
+.time-night.terrain-grass-2 { color: var(--night-grass-2) !important; }
+.time-night .terrain-grass-3,
+.time-night.terrain-grass-3 { color: var(--night-grass-3) !important; }
+.time-night .terrain-grass-4,
+.time-night.terrain-grass-4 { color: var(--night-grass-1) !important; }
+.time-night .terrain-grass-5,
+.time-night.terrain-grass-5 { color: var(--night-grass-2) !important; }
+.time-night .terrain-grass-6,
+.time-night.terrain-grass-6 { color: var(--night-grass-3) !important; }
+.time-night .terrain-grass-7,
+.time-night.terrain-grass-7 { color: var(--night-grass-1) !important; }
+.time-night .terrain-grass-8,
+.time-night.terrain-grass-8 { color: var(--night-grass-2) !important; }
+
+.time-night .terrain-water,
+.time-night.terrain-water { color: var(--night-water) !important; }
+.time-night .terrain-hills,
+.time-night.terrain-hills { color: var(--night-hills) !important; }
+.time-night .terrain-rocks,
+.time-night.terrain-rocks { color: var(--night-rocks) !important; }
+.time-night .terrain-stone,
+.time-night.terrain-stone { color: var(--night-stone) !important; }
+
+/* Night fog (very dark) */
+.terrain-fog.time-night { color: var(--night-fog) !important; }
+
+/* === DAWN TIME LIGHTING === */
+.time-dawn .terrain-grass-1,
+.time-dawn.terrain-grass-1 { color: var(--dawn-grass-1) !important; }
+.time-dawn .terrain-grass-2,
+.time-dawn.terrain-grass-2 { color: var(--dawn-grass-2) !important; }
+.time-dawn .terrain-grass-3,
+.time-dawn.terrain-grass-3 { color: var(--dawn-grass-3) !important; }
+.time-dawn .terrain-grass-4,
+.time-dawn.terrain-grass-4 { color: var(--dawn-grass-1) !important; }
+.time-dawn .terrain-grass-5,
+.time-dawn.terrain-grass-5 { color: var(--dawn-grass-2) !important; }
+.time-dawn .terrain-grass-6,
+.time-dawn.terrain-grass-6 { color: var(--dawn-grass-3) !important; }
+.time-dawn .terrain-grass-7,
+.time-dawn.terrain-grass-7 { color: var(--dawn-grass-1) !important; }
+.time-dawn .terrain-grass-8,
+.time-dawn.terrain-grass-8 { color: var(--dawn-grass-2) !important; }
+
+.time-dawn .terrain-water,
+.time-dawn.terrain-water { color: var(--dawn-water) !important; }
+.time-dawn .terrain-hills,
+.time-dawn.terrain-hills { color: var(--dawn-hills) !important; }
+.time-dawn .terrain-rocks,
+.time-dawn.terrain-rocks { color: var(--dawn-rocks) !important; }
+.time-dawn .terrain-stone,
+.time-dawn.terrain-stone { color: var(--dawn-stone) !important; }
+
+/* Dawn fog */
+.terrain-fog.time-dawn { color: var(--dawn-fog) !important; }
+
+/* === EXPLORED TERRAIN WITH TIME-BASED LIGHTING === */
+/* Explored areas are dimmed versions of the time-appropriate colors */
+
+.terrain-explored.time-day { opacity: 0.5 !important; }
+.terrain-explored.time-dusk { opacity: 0.4 !important; }
+.terrain-explored.time-night { opacity: 0.3 !important; }
+.terrain-explored.time-dawn { opacity: 0.45 !important; }
+
+/* === TRANSITION EFFECTS === */
+/* Smooth transitions between day and night */
+.time-day,
+.time-dusk,
+.time-night,
+.time-dawn {
+    transition: color 2s ease-in-out, opacity 2s ease-in-out;
+}
+
+/* === PLAYER VISIBILITY IN DIFFERENT LIGHTING === */
+.player.time-day { 
+    color: #ff6b6b !important;
+    text-shadow: 0 0 2px #ff6b6b;
+}
+.player.time-dusk { 
+    color: #ff8b8b !important;
+    text-shadow: 0 0 3px #ff6b6b;
+}
+.player.time-night { 
+    color: #ffaaaa !important;
+    text-shadow: 0 0 4px #ff6b6b, 0 0 8px #ff6b6b;
+}
+.player.time-dawn { 
+    color: #ff7b7b !important;
+    text-shadow: 0 0 3px #ff6b6b;
+}
+
+/* === TREE LIGHTING === */
+.time-day .tree_trunk,
+.time-day.tree_trunk,
+.time-day .feature-tree-trunk,
+.time-day.feature-tree-trunk { color: #8b4513 !important; }
+
+.time-night .tree_trunk,
+.time-night.tree_trunk,
+.time-night .feature-tree-trunk,
+.time-night.feature-tree-trunk { color: #2d1408 !important; }
+
+.time-day .tree_canopy,
+.time-day.tree_canopy,
+.time-day .feature-tree-canopy,
+.time-day.feature-tree-canopy { color: #008000 !important; }
+
+.time-night .tree_canopy,
+.time-night.tree_canopy,
+.time-night .feature-tree-canopy,
+.time-night.feature-tree-canopy { color: #002200 !important; }
+
+.time-dusk .tree_trunk,
+.time-dusk.tree_trunk,
+.time-dusk .feature-tree-trunk,
+.time-dusk.feature-tree-trunk { color: #5a2d0a !important; }
+
+.time-dusk .tree_canopy,
+.time-dusk.tree_canopy,
+.time-dusk .feature-tree-canopy,
+.time-dusk.feature-tree-canopy { color: #004400 !important; }
+
+.time-dawn .tree_trunk,
+.time-dawn.tree_trunk,
+.time-dawn .feature-tree-trunk,
+.time-dawn.feature-tree-trunk { color: #6b3510 !important; }
+
+.time-dawn .tree_canopy,
+.time-dawn.tree_canopy,
+.time-dawn .feature-tree-canopy,
+.time-dawn.feature-tree-canopy { color: #005500 !important; }
+
+/* === DEER LIGHTING === */
+.deer-entity.time-day { 
+   color: #daa520 !important; 
+   text-shadow: 0 0 1px #daa520;
+}
+.deer-entity.time-night { 
+   color: #8b7355 !important; 
+   text-shadow: 0 0 2px #8b7355;
+}
+.deer-entity.time-dusk { 
+   color: #cd853f !important; 
+   text-shadow: 0 0 1px #cd853f;
+}
+.deer-entity.time-dawn { 
+   color: #d2b48c !important; 
+   text-shadow: 0 0 1px #d2b48c;
+}
+
+
+/* === ROCKY TERRAIN VARIATIONS WITH TIME-BASED LIGHTING === */
+.time-day .terrain-rocks-1,
+.time-day.terrain-rocks-1 { color: #696969 !important; }
+.time-day .terrain-rocks-2,
+.time-day.terrain-rocks-2 { color: #708090 !important; }
+.time-day .terrain-rocks-3,
+.time-day.terrain-rocks-3 { color: #778899 !important; }
+.time-day .terrain-rocks-4,
+.time-day.terrain-rocks-4 { color: #2f4f4f !important; }
+
+.time-night .terrain-rocks-1,
+.time-night.terrain-rocks-1 { color: #2a2a2a !important; }
+.time-night .terrain-rocks-2,
+.time-night.terrain-rocks-2 { color: #2d2d2d !important; }
+.time-night .terrain-rocks-3,
+.time-night.terrain-rocks-3 { color: #303030 !important; }
+.time-night .terrain-rocks-4,
+.time-night.terrain-rocks-4 { color: #1a1a1a !important; }
+
+.time-dusk .terrain-rocks-1,
+.time-dusk.terrain-rocks-1 { color: #4a4a4a !important; }
+.time-dusk .terrain-rocks-2,
+.time-dusk.terrain-rocks-2 { color: #505060 !important; }
+.time-dusk .terrain-rocks-3,
+.time-dusk.terrain-rocks-3 { color: #556070 !important; }
+.time-dusk .terrain-rocks-4,
+.time-dusk.terrain-rocks-4 { color: #203030 !important; }
+
+.time-dawn .terrain-rocks-1,
+.time-dawn.terrain-rocks-1 { color: #5a5a5a !important; }
+.time-dawn .terrain-rocks-2,
+.time-dawn.terrain-rocks-2 { color: #606070 !important; }
+.time-dawn .terrain-rocks-3,
+.time-dawn.terrain-rocks-3 { color: #657080 !important; }
+.time-dawn .terrain-rocks-4,
+.time-dawn.terrain-rocks-4 { color: #304040 !important; }
+
+/* Similar patterns for boulders and stone variations... */
+.time-day .terrain-boulders-1,
+.time-day.terrain-boulders-1 { color: #778899 !important; }
+.time-day .terrain-boulders-2,
+.time-day.terrain-boulders-2 { color: #696969 !important; }
+.time-day .terrain-boulders-3,
+.time-day.terrain-boulders-3 { color: #708090 !important; }
+.time-day .terrain-boulders-4,
+.time-day.terrain-boulders-4 { color: #556b2f !important; }
+
+.time-night .terrain-boulders-1,
+.time-night.terrain-boulders-1 { color: #303030 !important; }
+.time-night .terrain-boulders-2,
+.time-night.terrain-boulders-2 { color: #2a2a2a !important; }
+.time-night .terrain-boulders-3,
+.time-night.terrain-boulders-3 { color: #2d2d2d !important; }
+.time-night .terrain-boulders-4,
+.time-night.terrain-boulders-4 { color: #1f2f0f !important; }
+
+.time-day .terrain-stone-1,
+.time-day.terrain-stone-1 { color: #808080 !important; }
+.time-day .terrain-stone-2,
+.time-day.terrain-stone-2 { color: #a9a9a9 !important; }
+.time-day .terrain-stone-3,
+.time-day.terrain-stone-3 { color: #696969 !important; }
+.time-day .terrain-stone-4,
+.time-day.terrain-stone-4 { color: #dcdcdc !important; }
+
+.time-night .terrain-stone-1,
+.time-night.terrain-stone-1 { color: #333333 !important; }
+.time-night .terrain-stone-2,
+.time-night.terrain-stone-2 { color: #404040 !important; }
+.time-night .terrain-stone-3,
+.time-night.terrain-stone-3 { color: #2a2a2a !important; }
+.time-night .terrain-stone-4,
+.time-night.terrain-stone-4 { color: #505050 !important; }

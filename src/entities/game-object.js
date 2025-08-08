@@ -1,5 +1,7 @@
-// === GAME OBJECT MODULE ===
+// === FIXED GAME OBJECT MODULE ===
 // File: game-object.js
+// FIXED: Mountains are now walkable
+
 class GameObject {
     constructor(terrainSystem, movementRules = null) {
         this.x = 0;
@@ -9,11 +11,12 @@ class GameObject {
     }
     
     getDefaultMovementRules() {
-        // Default player movement rules
+        // FIXED: Allow walking on mountains - they're just high elevation areas
         return {
-            canWalkOn: ['plains', 'forest', 'foothills', 'road', 'trail'],
-            cannotWalkOn: ['river', 'lake', 'mountain', 'building', 'village'],
-            // Optional: special rules
+            canWalkOn: ['plains', 'forest', 'foothills', 'mountain', 'rocks', 'boulders', 'stone', 'road', 'trail'],
+            cannotWalkOn: ['river', 'lake', 'building', 'village'],
+            // Note: Mountains, rocks, boulders, and stone are now walkable
+            // Only water and buildings block movement
             requiresSpecialAccess: {
                 'building': 'door'  // Can enter buildings through doors
             }
@@ -64,7 +67,7 @@ class GameObject {
             console.log("Cannot move outside world boundaries");
         } else {
             const terrain = this.terrainSystem.getTerrainAt(x, y);
-            console.log(`Cannot walk on ${terrain.name}`);
+            console.log(`Cannot walk on ${terrain.name || terrain.terrain}`);
         }
     }
     
